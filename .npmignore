@@ -35,6 +35,3 @@ jspm_packages/
 
 # test output
 .test-compiled
-
-# distribution
-dist/
