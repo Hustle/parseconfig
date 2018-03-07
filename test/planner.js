@@ -97,6 +97,25 @@ describe('planner', function() {
         [delCol]
       );
     });
+    it('should delete and recreate an updated column', function() {
+      const oldSchema = deepCopy(defaultSchema.collections);
+      const newSchema = deepCopy(defaultSchema.collections);
+
+      newSchema[0].fields.AAA.type = 'object';
+      const delCol = DeleteColumn(
+        oldSchema[0].className,
+        'AAA'
+      );
+      const newCol = AddColumn(
+        newSchema[0].className,
+        'AAA',
+        deepCopy(newSchema[0].fields.AAA)
+      );
+      assert.deepEqual(
+        planCollections(newSchema, oldSchema),
+        [delCol, newCol] // order matters
+      );
+    });
     it('should add a new index', function() {
       const oldSchema = deepCopy(defaultSchema.collections);
       const newSchema = deepCopy(defaultSchema.collections);
@@ -124,6 +143,25 @@ describe('planner', function() {
       assert.deepEqual(
         planCollections(newSchema, oldSchema),
         [delCol]
+      );
+    });
+    it('should delete and recreate an updated index', function() {
+      const oldSchema = deepCopy(defaultSchema.collections);
+      const newSchema = deepCopy(defaultSchema.collections);
+
+      newSchema[0].indexes.AAA_index.AAB = 2
+      const delIndex = DeleteIndex(
+        oldSchema[0].className,
+        'AAA_index'
+      );
+      const newIndex = AddIndex(
+        newSchema[0].className,
+        'AAA_index',
+        deepCopy(newSchema[0].indexes.AAA_index)
+      );
+      assert.deepEqual(
+        planCollections(newSchema, oldSchema),
+        [delIndex, newIndex] // order matters
       );
     });
   });

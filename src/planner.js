@@ -22,6 +22,13 @@ import type {
   Command
 } from './command';
 
+const deepEquals = (a: any, b: any): boolean => {
+  if (a === undefined || b === undefined) {
+    return a === b;
+  }
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 const planCollections = (
   newSchema: Array<CollectionDefinition>,
   oldSchema: Array<CollectionDefinition>
@@ -61,7 +68,8 @@ const planCollections = (
       }
       const fields: { [string]: ColumnDefinition } = collection.fields;
       Object.keys(fields).forEach((name) => {
-        if (old.fields[name] === undefined) {
+        const oldField = old.fields[name];
+        if (oldField === undefined || !deepEquals(oldField, fields[name])) {
           nc.push(AddColumn(collection.className, name, fields[name]));
         }
       });
@@ -79,7 +87,8 @@ const planCollections = (
       }
       const fields: { [string]: ColumnDefinition } = collection.fields;
       Object.keys(fields).forEach((name) => {
-        if (newC.fields[name] === undefined) {
+        const newField = newC.fields[name];
+        if (newField === undefined || !deepEquals(newField, fields[name])) {
           dc.push(DeleteColumn(collection.className, name));
         }
       });
@@ -96,7 +105,8 @@ const planCollections = (
       }
       const indexes: { [string]: IndexDefinition } = collection.indexes;
       Object.keys(indexes).forEach((name) => {
-        if (old.indexes[name] === undefined) {
+        const oldIndex = old.indexes[name];
+        if (oldIndex === undefined || !deepEquals(oldIndex, indexes[name])) {
           ni.push(AddIndex(collection.className, name, indexes[name]));
         }
       });
@@ -114,20 +124,23 @@ const planCollections = (
       }
       const indexes: { [string]: IndexDefinition } = collection.indexes;
       Object.keys(indexes).forEach((name) => {
-        if (newC.indexes[name] === undefined) {
+        const newIndex = newC.indexes[name];
+        if (newIndex === undefined || !deepEquals(newIndex, indexes[name])) {
           di.push(DeleteIndex(collection.className, name));
         }
       });
     });
     return di;
   })();
-  
+
+  // Order matters here. When a column or index is modified the old column/index
+  // needs to be deleted before the new one is created.
   return newCollections.concat(
     deletedCollections,
-    newColumns,
     deletedColumns,
+    newColumns,
+    deletedIndexes,
     newIndexes,
-    deletedIndexes
   )
 };
 
