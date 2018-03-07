@@ -1,12 +1,13 @@
 // @flow
+
 import type {
   ParseSchemaResponse,
   Schema,
   CollectionDefinition,
+  FunctionDefinition,
   ColumnDefinition,
   IndexDefinition,
-  CollectionPermissions,
-  RolePermissions
+  TriggerDefinition,
 } from './schema';
 
 import {
@@ -15,7 +16,11 @@ import {
   AddColumn,
   DeleteColumn,
   AddIndex,
-  DeleteIndex
+  DeleteIndex,
+  AddFunction,
+  DeleteFunction,
+  AddTrigger,
+  DeleteTrigger,
 } from './command';
 
 import type {
@@ -144,6 +149,74 @@ const planCollections = (
   )
 };
 
+// TODO functions can be directly update via the API
+const planFunctions = (
+  newSchema: Array<FunctionDefinition>,
+  oldSchema: Array<FunctionDefinition>
+): Array<Command> => {
+  const oldFuncMap = new Map(oldSchema.map(c => [c.functionName, c]));
+  const newFuncMap = new Map(newSchema.map(c => [c.functionName, c]));
+
+  const newFunctions = (() => {
+    const newFuncs = [];
+    newSchema.forEach(func => {
+      const oldFunc = oldFuncMap.get(func.functionName);
+      if (oldFunc === undefined || oldFunc.path !== func.path) {
+        newFuncs.push(AddFunction(func));
+      }
+    });
+    return newFuncs;
+  })();
+  const deletedFunctions = (() => {
+    const delFuncs = [];
+    oldSchema.forEach(func => {
+      const newFunc = newFuncMap.get(func.functionName);
+      if (newFunc === undefined || newFunc.path !== func.path) {
+        delFuncs.push(DeleteFunction(func.functionName));
+      }
+    });
+    return delFuncs;
+  })();
+  
+  return deletedFunctions.concat(newFunctions);
+};
+
+// TODO triggers can e directly updated via PUT
+const planTriggers = (
+  newSchema: Array<TriggerDefinition>,
+  oldSchema: Array<TriggerDefinition>
+): Array<Command> => {
+  const triggerKey = (t: TriggerDefinition): string => `${t.triggerName}-${t.className}`;
+  
+  const oldTriggerMap = new Map(oldSchema.map(t => [triggerKey(t), t]));
+  const newTriggerMap = new Map(newSchema.map(t => [triggerKey(t), t]));
+
+  const newTriggers = (() => {
+    const newTriggers = [];
+    newSchema.forEach(trigger => {
+      const oldTrigger = oldTriggerMap.get(triggerKey(trigger));
+      if (oldTrigger === undefined || oldTrigger.path !== trigger.path) {
+        newTriggers.push(AddTrigger(trigger));
+      }
+    });
+    return newTriggers;
+  })();
+  const deletedTriggers = (() => {
+    const delTriggers = [];
+    oldSchema.forEach(trigger => {
+      const newTrigger = newTriggerMap.get(triggerKey(trigger));
+      if (newTrigger === undefined || newTrigger.path !== trigger.path) {
+        delTriggers.push(DeleteTrigger(trigger.className, trigger.triggerName));
+      }
+    });
+    return delTriggers;
+  })();
+  
+  return deletedTriggers.concat(newTriggers);
+};
+
 export {
-  planCollections
+  planCollections,
+  planFunctions,
+  planTriggers,
 }

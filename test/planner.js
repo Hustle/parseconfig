@@ -1,6 +1,6 @@
 import assert from 'assert';
 
-import { planCollections } from '../dist/planner';
+import { planCollections, planFunctions, planTriggers } from '../dist/planner';
 
 import {
   AddCollection,
@@ -8,7 +8,11 @@ import {
   AddColumn,
   DeleteColumn,
   AddIndex,
-  DeleteIndex
+  DeleteIndex,
+  AddFunction,
+  DeleteFunction,
+  AddTrigger,
+  DeleteTrigger
 } from '../dist/command';
 
 const deepCopy = (any) => JSON.parse(JSON.stringify(any));
@@ -45,8 +49,28 @@ describe('planner', function() {
         indexes: {}
       }
     ],
-    functions: [],
-    triggers: []
+    functions: [
+      {
+        functionName: 'getFoobar',
+        path: '/getFoobar'
+      },
+      {
+        functionName: 'addFoobar',
+        path: '/addFoobar'
+      }
+    ],
+    triggers: [
+      {
+        className: 'Foo',
+        triggerName: 'beforeSave',
+        path: '/foo/beforeSave'
+      },
+      {
+        className: 'Bar',
+        triggerName: 'afterSave',
+        path: '/bar/afterSave'
+      }
+    ]
   }
   
   describe('planCollections()', function() {
@@ -162,6 +186,94 @@ describe('planner', function() {
       assert.deepEqual(
         planCollections(newSchema, oldSchema),
         [delIndex, newIndex] // order matters
+      );
+    });
+  });
+
+  describe('planFunctions()', function() {
+    it('should add a new function', function() {
+      const oldSchema = deepCopy(defaultSchema.functions).slice(1);
+      const newSchema = deepCopy(defaultSchema.functions);
+
+      const newFunc = AddFunction(
+        newSchema[0]
+      );
+      assert.deepEqual(
+        planFunctions(newSchema, oldSchema),
+        [newFunc]
+      );
+    });
+    it('should delete a removed function', function() {
+      const oldSchema = deepCopy(defaultSchema.functions);
+      const newSchema = deepCopy(defaultSchema.functions).slice(1);
+
+      const delFunc = DeleteFunction(
+        oldSchema[0].functionName
+      );
+      assert.deepEqual(
+        planFunctions(newSchema, oldSchema),
+        [delFunc]
+      );
+    });
+    it('should delete and recreate an updated function', function() {
+      const oldSchema = deepCopy(defaultSchema.functions);
+      const newSchema = deepCopy(defaultSchema.functions);
+
+      newSchema[0].path = '/some/other/path';
+      const delFunc = DeleteFunction(
+        oldSchema[0].functionName
+      );
+      const newFunc = AddFunction(
+        newSchema[0]
+      );
+      assert.deepEqual(
+        planFunctions(newSchema, oldSchema),
+        [delFunc, newFunc] // order matters
+      );
+    });
+  });
+
+  describe('planTriggers()', function() {
+    it('should add a new trigger', function() {
+      const oldSchema = deepCopy(defaultSchema.triggers).slice(1);
+      const newSchema = deepCopy(defaultSchema.triggers);
+
+      const newFunc = AddTrigger(
+        newSchema[0]
+      );
+      assert.deepEqual(
+        planTriggers(newSchema, oldSchema),
+        [newFunc]
+      );
+    });
+    it('should delete a removed function', function() {
+      const oldSchema = deepCopy(defaultSchema.triggers);
+      const newSchema = deepCopy(defaultSchema.triggers).slice(1);
+
+      const delFunc = DeleteTrigger(
+        oldSchema[0].className,
+        oldSchema[0].triggerName
+      );
+      assert.deepEqual(
+        planTriggers(newSchema, oldSchema),
+        [delFunc]
+      );
+    });
+    it('should delete and recreate an updated function', function() {
+      const oldSchema = deepCopy(defaultSchema.triggers);
+      const newSchema = deepCopy(defaultSchema.triggers);
+
+      newSchema[0].path = '/some/other/path';
+      const delFunc = DeleteTrigger(
+        oldSchema[0].className,
+        oldSchema[0].triggerName
+      );
+      const newFunc = AddTrigger(
+        newSchema[0]
+      );
+      assert.deepEqual(
+        planTriggers(newSchema, oldSchema),
+        [delFunc, newFunc] // order matters
       );
     });
   });

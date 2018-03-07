@@ -5,7 +5,9 @@ export type ParseSchemaResponse = {
 }
 
 export type Schema = {
-  collections: Array<CollectionDefinition>
+  collections: Array<CollectionDefinition>,
+  functions: Array<FunctionDefinition>,
+  triggers: Array<TriggerDefinition>
 }
 
 export type CollectionDefinition = {
@@ -34,3 +36,30 @@ export type CollectionPermissions = {
 }
 
 export type RolePermissions = { [string]: boolean }
+
+export type FunctionDefinition = {
+  functionName: string,
+  path: string
+}
+
+// Just here to DRY up the typetime/runtime definitions since
+// there is no equivalent of $Keys for array literals.
+const triggerTypesObj = {
+  beforeSave: null,
+  afterSave: null,
+  beforeDelete: null,
+  afterDelete: null,
+};
+const triggerTypes = Object.keys(triggerTypesObj);
+
+export type TriggerType = $Keys<typeof triggerTypesObj>;
+
+export type TriggerDefinition = {
+  triggerName: TriggerType,
+  className: string,
+  path: string
+}
+
+export {
+  triggerTypes
+}

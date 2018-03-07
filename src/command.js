@@ -7,7 +7,10 @@ import type {
   ColumnDefinition,
   IndexDefinition,
   CollectionPermissions,
-  RolePermissions
+  RolePermissions,
+  FunctionDefinition,
+  TriggerDefinition,
+  TriggerType
 } from './schema';
 
 export type AddCollectionCommand = {
@@ -40,6 +43,23 @@ export type DeleteIndexCommand = {
   collection: string,
   columnName: string
 }
+export type AddFunctionCommand = {
+  command: 'AddFunction',
+  definition: FunctionDefinition
+}
+export type DeleteFunctionCommand = {
+  command: 'DeleteFunction',
+  functionName: string
+}
+export type AddTriggerCommand = {
+  command: 'AddTrigger',
+  definition: TriggerDefinition
+}
+export type DeleteTriggerCommand = {
+  command: 'DeleteTrigger',
+  className: string,
+  triggerName: TriggerType
+}
 export type Command
   = AddCollectionCommand
   | DeleteCollectionCommand
@@ -47,6 +67,10 @@ export type Command
   | DeleteColumnCommand
   | AddIndexCommand
   | DeleteIndexCommand
+  | AddFunctionCommand
+  | DeleteFunctionCommand
+  | AddTriggerCommand
+  | DeleteTriggerCommand
 
 const AddCollection = (collection: CollectionDefinition): AddCollectionCommand => (
   {
@@ -102,11 +126,48 @@ const DeleteIndex = (collection: string, name: string): DeleteIndexCommand => (
 );
 DeleteIndex.command = 'DeleteIndex';
 
+const AddFunction = (definition: FunctionDefinition): AddFunctionCommand => (
+  {
+    command: AddFunction.command,
+    definition
+  }
+);
+AddFunction.command = 'AddFunction';
+
+const DeleteFunction = (name: string): DeleteFunctionCommand => (
+  {
+    command: DeleteFunction.command,
+    functionName: name
+  }
+);
+DeleteFunction.command = 'DeleteFunction';
+
+const AddTrigger = (definition: TriggerDefinition): AddTriggerCommand => (
+  {
+    command: AddTrigger.command,
+    definition
+  }
+);
+AddTrigger.command = 'AddTrigger';
+
+const DeleteTrigger = (className: string, triggerType: TriggerType): DeleteTriggerCommand => (
+  {
+    command: DeleteTrigger.command,
+    className,
+    triggerName: triggerType
+  }
+);
+DeleteTrigger.command = 'DeleteTrigger';
+
 export {
   AddCollection,
   DeleteCollection,
   AddColumn,
   DeleteColumn,
   AddIndex,
-  DeleteIndex
+  DeleteIndex,
+  AddFunction,
+  DeleteFunction,
+  AddTrigger,
+  DeleteTrigger,
 }
