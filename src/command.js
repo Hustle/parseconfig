@@ -32,6 +32,12 @@ export type DeleteColumnCommand = {
   collection: string,
   columnName: string
 }
+export type UpdateColumnCommand = {
+  type: 'UpdateColumn',
+  collection: string,
+  name: string,
+  definition: ColumnDefinition
+}
 export type AddIndexCommand = {
   type: 'AddIndex',
   collection: string,
@@ -43,6 +49,12 @@ export type DeleteIndexCommand = {
   collection: string,
   columnName: string
 }
+export type UpdateIndexCommand = {
+  type: 'UpdateIndex',
+  collection: string,
+  name: string,
+  definition: IndexDefinition
+}
 export type AddFunctionCommand = {
   type: 'AddFunction',
   definition: FunctionDefinition
@@ -50,6 +62,10 @@ export type AddFunctionCommand = {
 export type DeleteFunctionCommand = {
   type: 'DeleteFunction',
   functionName: string
+}
+export type UpdateFunctionCommand = {
+  type: 'UpdateFunction',
+  definition: FunctionDefinition
 }
 export type AddTriggerCommand = {
   type: 'AddTrigger',
@@ -60,17 +76,25 @@ export type DeleteTriggerCommand = {
   className: string,
   triggerName: TriggerType
 }
+export type UpdateTriggerCommand = {
+  type: 'UpdateTrigger',
+  definition: TriggerDefinition
+}
 export type Command
   = AddCollectionCommand
   | DeleteCollectionCommand
   | AddColumnCommand
   | DeleteColumnCommand
+  | UpdateColumnCommand
   | AddIndexCommand
   | DeleteIndexCommand
+  | UpdateIndexCommand
   | AddFunctionCommand
   | DeleteFunctionCommand
+  | UpdateFunctionCommand
   | AddTriggerCommand
   | DeleteTriggerCommand
+  | UpdateTriggerCommand
 
 const AddCollection = (collection: CollectionDefinition): AddCollectionCommand => (
   {
@@ -107,6 +131,16 @@ const DeleteColumn = (collection: string, name: string): DeleteColumnCommand => 
 );
 DeleteColumn.type = 'DeleteColumn';
 
+const UpdateColumn = (collection: string, name: string, definition: ColumnDefinition): UpdateColumnCommand => (
+  {
+    type: UpdateColumn.type,
+    collection,
+    name,
+    definition
+  }
+);
+UpdateColumn.type = 'UpdateColumn';
+
 const AddIndex = (collection: string, name: string, definition: IndexDefinition): AddIndexCommand => (
   {
     type: AddIndex.type,
@@ -126,6 +160,16 @@ const DeleteIndex = (collection: string, name: string): DeleteIndexCommand => (
 );
 DeleteIndex.type = 'DeleteIndex';
 
+const UpdateIndex = (collection: string, name: string, definition: IndexDefinition): UpdateIndexCommand => (
+  {
+    type: UpdateIndex.type,
+    collection,
+    name,
+    definition
+  }
+);
+UpdateIndex.type = 'UpdateIndex';
+
 const AddFunction = (definition: FunctionDefinition): AddFunctionCommand => (
   {
     type: AddFunction.type,
@@ -141,6 +185,14 @@ const DeleteFunction = (name: string): DeleteFunctionCommand => (
   }
 );
 DeleteFunction.type = 'DeleteFunction';
+
+const UpdateFunction = (definition: FunctionDefinition): UpdateFunctionCommand => (
+  {
+    type: UpdateFunction.type,
+    definition
+  }
+);
+UpdateFunction.type = 'UpdateFunction';
 
 const AddTrigger = (definition: TriggerDefinition): AddTriggerCommand => (
   {
@@ -159,15 +211,28 @@ const DeleteTrigger = (className: string, triggerType: TriggerType): DeleteTrigg
 );
 DeleteTrigger.type = 'DeleteTrigger';
 
+const UpdateTrigger = (definition: TriggerDefinition): UpdateTriggerCommand => (
+  {
+    type: UpdateTrigger.type,
+    definition
+  }
+);
+UpdateTrigger.type = 'UpdateTrigger';
+
+
 export {
   AddCollection,
   DeleteCollection,
   AddColumn,
   DeleteColumn,
+  UpdateColumn,
   AddIndex,
   DeleteIndex,
+  UpdateIndex,
   AddFunction,
   DeleteFunction,
+  UpdateFunction,
   AddTrigger,
   DeleteTrigger,
+  UpdateTrigger,
 }

@@ -7,12 +7,16 @@ import {
   DeleteCollection,
   AddColumn,
   DeleteColumn,
+  UpdateColumn,
   AddIndex,
   DeleteIndex,
+  UpdateIndex,
   AddFunction,
   DeleteFunction,
+  UpdateFunction,
   AddTrigger,
-  DeleteTrigger
+  DeleteTrigger,
+  UpdateTrigger,
 } from '../dist/command';
 
 const deepCopy = (any) => JSON.parse(JSON.stringify(any));
@@ -121,23 +125,19 @@ describe('planner', function() {
         [delCol]
       );
     });
-    it('should delete and recreate an updated column', function() {
+    it('should update a changed column', function() {
       const oldSchema = deepCopy(defaultSchema.collections);
       const newSchema = deepCopy(defaultSchema.collections);
 
       newSchema[0].fields.AAA.type = 'object';
-      const delCol = DeleteColumn(
-        oldSchema[0].className,
-        'AAA'
-      );
-      const newCol = AddColumn(
+      const newCol = UpdateColumn(
         newSchema[0].className,
         'AAA',
         deepCopy(newSchema[0].fields.AAA)
       );
       assert.deepEqual(
         planCollections(newSchema, oldSchema),
-        [delCol, newCol] // order matters
+        [newCol]
       );
     });
     it('should add a new index', function() {
@@ -169,23 +169,19 @@ describe('planner', function() {
         [delCol]
       );
     });
-    it('should delete and recreate an updated index', function() {
+    it('should update a changed index', function() {
       const oldSchema = deepCopy(defaultSchema.collections);
       const newSchema = deepCopy(defaultSchema.collections);
 
       newSchema[0].indexes.AAA_index.AAB = 2
-      const delIndex = DeleteIndex(
-        oldSchema[0].className,
-        'AAA_index'
-      );
-      const newIndex = AddIndex(
+      const newIndex = UpdateIndex(
         newSchema[0].className,
         'AAA_index',
         deepCopy(newSchema[0].indexes.AAA_index)
       );
       assert.deepEqual(
         planCollections(newSchema, oldSchema),
-        [delIndex, newIndex] // order matters
+        [newIndex]
       );
     });
   });
@@ -215,20 +211,17 @@ describe('planner', function() {
         [delFunc]
       );
     });
-    it('should delete and recreate an updated function', function() {
+    it('should update a changed function', function() {
       const oldSchema = deepCopy(defaultSchema.functions);
       const newSchema = deepCopy(defaultSchema.functions);
 
       newSchema[0].path = '/some/other/path';
-      const delFunc = DeleteFunction(
-        oldSchema[0].functionName
-      );
-      const newFunc = AddFunction(
+      const newFunc = UpdateFunction(
         newSchema[0]
       );
       assert.deepEqual(
         planFunctions(newSchema, oldSchema),
-        [delFunc, newFunc] // order matters
+        [newFunc]
       );
     });
   });
@@ -246,7 +239,7 @@ describe('planner', function() {
         [newFunc]
       );
     });
-    it('should delete a removed function', function() {
+    it('should delete a removed trigger', function() {
       const oldSchema = deepCopy(defaultSchema.triggers);
       const newSchema = deepCopy(defaultSchema.triggers).slice(1);
 
@@ -259,21 +252,17 @@ describe('planner', function() {
         [delFunc]
       );
     });
-    it('should delete and recreate an updated function', function() {
+    it('should update a changed trigger', function() {
       const oldSchema = deepCopy(defaultSchema.triggers);
       const newSchema = deepCopy(defaultSchema.triggers);
 
       newSchema[0].path = '/some/other/path';
-      const delFunc = DeleteTrigger(
-        oldSchema[0].className,
-        oldSchema[0].triggerName
-      );
-      const newFunc = AddTrigger(
+      const newFunc = UpdateTrigger(
         newSchema[0]
       );
       assert.deepEqual(
         planTriggers(newSchema, oldSchema),
-        [delFunc, newFunc] // order matters
+        [newFunc]
       );
     });
   });

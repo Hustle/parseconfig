@@ -15,12 +15,16 @@ import {
   DeleteCollection,
   AddColumn,
   DeleteColumn,
+  UpdateColumn,
   AddIndex,
   DeleteIndex,
+  UpdateIndex,
   AddFunction,
   DeleteFunction,
+  UpdateFunction,
   AddTrigger,
   DeleteTrigger,
+  UpdateTrigger,
 } from './command';
 
 import type {
@@ -69,13 +73,15 @@ const planCollections = (
     newSchema.forEach(collection => {
       const old = oc.get(collection.className);
       if (old === undefined) {
-        return;
+        return; // New Collection, handled above
       }
       const fields: { [string]: ColumnDefinition } = collection.fields;
       Object.keys(fields).forEach((name) => {
         const oldField = old.fields[name];
-        if (oldField === undefined || !deepEquals(oldField, fields[name])) {
+        if (oldField === undefined) {
           nc.push(AddColumn(collection.className, name, fields[name]));
+        } else if (!deepEquals(oldField, fields[name])) {
+          nc.push(UpdateColumn(collection.className, name, fields[name]));
         }
       });
     });
@@ -88,12 +94,12 @@ const planCollections = (
     oldSchema.forEach(collection => {
       const newC = nc.get(collection.className);
       if (newC === undefined) {
-        return;
+        return; // Deleted Collection, handled above
       }
       const fields: { [string]: ColumnDefinition } = collection.fields;
       Object.keys(fields).forEach((name) => {
         const newField = newC.fields[name];
-        if (newField === undefined || !deepEquals(newField, fields[name])) {
+        if (newField === undefined) {
           dc.push(DeleteColumn(collection.className, name));
         }
       });
@@ -106,13 +112,15 @@ const planCollections = (
     newSchema.forEach(collection => {
       const old = oc.get(collection.className);
       if (old === undefined) {
-        return;
+        return; // New Collection, handled above
       }
       const indexes: { [string]: IndexDefinition } = collection.indexes;
       Object.keys(indexes).forEach((name) => {
         const oldIndex = old.indexes[name];
-        if (oldIndex === undefined || !deepEquals(oldIndex, indexes[name])) {
+        if (oldIndex === undefined) {
           ni.push(AddIndex(collection.className, name, indexes[name]));
+        } else if (!deepEquals(oldIndex, indexes[name])) {
+          ni.push(UpdateIndex(collection.className, name, indexes[name]));
         }
       });
     });
@@ -125,12 +133,12 @@ const planCollections = (
     oldSchema.forEach(collection => {
       const newC = nc.get(collection.className);
       if (newC === undefined) {
-        return;
+        return; // Deleted Collection, handled above
       }
       const indexes: { [string]: IndexDefinition } = collection.indexes;
       Object.keys(indexes).forEach((name) => {
         const newIndex = newC.indexes[name];
-        if (newIndex === undefined || !deepEquals(newIndex, indexes[name])) {
+        if (newIndex === undefined) {
           di.push(DeleteIndex(collection.className, name));
         }
       });
@@ -138,18 +146,19 @@ const planCollections = (
     return di;
   })();
 
-  // Order matters here. When a column or index is modified the old column/index
-  // needs to be deleted before the new one is created.
+  // Order matters here. New columns must be added before
+  // indices which use them
   return newCollections.concat(
     deletedCollections,
+    deletedIndexes,
     deletedColumns,
     newColumns,
-    deletedIndexes,
     newIndexes,
   )
 };
 
 // TODO functions can be directly update via the API
+// We should probably just expand the vocabluary of commands to include updates for columns and indices and then translate those to two API calls in the end.
 const planFunctions = (
   newSchema: Array<FunctionDefinition>,
   oldSchema: Array<FunctionDefinition>
@@ -161,8 +170,10 @@ const planFunctions = (
     const newFuncs = [];
     newSchema.forEach(func => {
       const oldFunc = oldFuncMap.get(func.functionName);
-      if (oldFunc === undefined || oldFunc.path !== func.path) {
+      if (oldFunc === undefined) {
         newFuncs.push(AddFunction(func));
+      } else if (oldFunc.path !== func.path) {
+        newFuncs.push(UpdateFunction(func));
       }
     });
     return newFuncs;
@@ -171,7 +182,7 @@ const planFunctions = (
     const delFuncs = [];
     oldSchema.forEach(func => {
       const newFunc = newFuncMap.get(func.functionName);
-      if (newFunc === undefined || newFunc.path !== func.path) {
+      if (newFunc === undefined) {
         delFuncs.push(DeleteFunction(func.functionName));
       }
     });
@@ -195,8 +206,10 @@ const planTriggers = (
     const newTriggers = [];
     newSchema.forEach(trigger => {
       const oldTrigger = oldTriggerMap.get(triggerKey(trigger));
-      if (oldTrigger === undefined || oldTrigger.path !== trigger.path) {
+      if (oldTrigger === undefined) {
         newTriggers.push(AddTrigger(trigger));
+      } else if (oldTrigger.path !== trigger.path) {
+        newTriggers.push(UpdateTrigger(trigger));
       }
     });
     return newTriggers;
@@ -205,7 +218,7 @@ const planTriggers = (
     const delTriggers = [];
     oldSchema.forEach(trigger => {
       const newTrigger = newTriggerMap.get(triggerKey(trigger));
-      if (newTrigger === undefined || newTrigger.path !== trigger.path) {
+      if (newTrigger === undefined) {
         delTriggers.push(DeleteTrigger(trigger.className, trigger.triggerName));
       }
     });
