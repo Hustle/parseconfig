@@ -14,49 +14,49 @@ import type {
 } from './schema';
 
 export type AddCollectionCommand = {
-  command: 'AddCollection',
+  type: 'AddCollection',
   definition: CollectionDefinition
 }
 export type DeleteCollectionCommand = {
-  command: 'DeleteCollection',
+  type: 'DeleteCollection',
   collectionName: string
 }
 export type AddColumnCommand = {
-  command: 'AddColumn',
+  type: 'AddColumn',
   collection: string,
   name: string,
   definition: ColumnDefinition
 }
 export type DeleteColumnCommand = {
-  command: 'DeleteColumn',
+  type: 'DeleteColumn',
   collection: string,
   columnName: string
 }
 export type AddIndexCommand = {
-  command: 'AddIndex',
+  type: 'AddIndex',
   collection: string,
   name: string,
   definition: IndexDefinition
 }
 export type DeleteIndexCommand = {
-  command: 'DeleteIndex',
+  type: 'DeleteIndex',
   collection: string,
   columnName: string
 }
 export type AddFunctionCommand = {
-  command: 'AddFunction',
+  type: 'AddFunction',
   definition: FunctionDefinition
 }
 export type DeleteFunctionCommand = {
-  command: 'DeleteFunction',
+  type: 'DeleteFunction',
   functionName: string
 }
 export type AddTriggerCommand = {
-  command: 'AddTrigger',
+  type: 'AddTrigger',
   definition: TriggerDefinition
 }
 export type DeleteTriggerCommand = {
-  command: 'DeleteTrigger',
+  type: 'DeleteTrigger',
   className: string,
   triggerName: TriggerType
 }
@@ -74,90 +74,90 @@ export type Command
 
 const AddCollection = (collection: CollectionDefinition): AddCollectionCommand => (
   {
-    command: AddCollection.command,
+    type: AddCollection.type,
     definition: collection
   }
 );
-AddCollection.command = 'AddCollection';
+AddCollection.type = 'AddCollection';
 
 const DeleteCollection = (collection: string): DeleteCollectionCommand => (
   {
-    command: DeleteCollection.command,
+    type: DeleteCollection.type,
     collectionName: collection
   }
 );
-DeleteCollection.command = 'DeleteCollection';
+DeleteCollection.type = 'DeleteCollection';
 
 const AddColumn = (collection: string, name: string, definition: ColumnDefinition): AddColumnCommand => (
   {
-    command: AddColumn.command,
+    type: AddColumn.type,
     collection,
     name,
     definition
   }
 );
-AddColumn.command = 'AddColumn';
+AddColumn.type = 'AddColumn';
 
 const DeleteColumn = (collection: string, name: string): DeleteColumnCommand => (
   {
-    command: DeleteColumn.command,
+    type: DeleteColumn.type,
     collection,
     columnName: name
   }
 );
-DeleteColumn.command = 'DeleteColumn';
+DeleteColumn.type = 'DeleteColumn';
 
 const AddIndex = (collection: string, name: string, definition: IndexDefinition): AddIndexCommand => (
   {
-    command: AddIndex.command,
+    type: AddIndex.type,
     collection,
     name,
     definition
   }
 );
-AddIndex.command = 'AddIndex';
+AddIndex.type = 'AddIndex';
 
 const DeleteIndex = (collection: string, name: string): DeleteIndexCommand => (
   {
-    command: DeleteIndex.command,
+    type: DeleteIndex.type,
     collection,
     columnName: name
   }
 );
-DeleteIndex.command = 'DeleteIndex';
+DeleteIndex.type = 'DeleteIndex';
 
 const AddFunction = (definition: FunctionDefinition): AddFunctionCommand => (
   {
-    command: AddFunction.command,
+    type: AddFunction.type,
     definition
   }
 );
-AddFunction.command = 'AddFunction';
+AddFunction.type = 'AddFunction';
 
 const DeleteFunction = (name: string): DeleteFunctionCommand => (
   {
-    command: DeleteFunction.command,
+    type: DeleteFunction.type,
     functionName: name
   }
 );
-DeleteFunction.command = 'DeleteFunction';
+DeleteFunction.type = 'DeleteFunction';
 
 const AddTrigger = (definition: TriggerDefinition): AddTriggerCommand => (
   {
-    command: AddTrigger.command,
+    type: AddTrigger.type,
     definition
   }
 );
-AddTrigger.command = 'AddTrigger';
+AddTrigger.type = 'AddTrigger';
 
 const DeleteTrigger = (className: string, triggerType: TriggerType): DeleteTriggerCommand => (
   {
-    command: DeleteTrigger.command,
+    type: DeleteTrigger.type,
     className,
     triggerName: triggerType
   }
 );
-DeleteTrigger.command = 'DeleteTrigger';
+DeleteTrigger.type = 'DeleteTrigger';
 
 export {
   AddCollection,
