@@ -172,7 +172,7 @@ const planFunctions = (
       const oldFunc = oldFuncMap.get(func.functionName);
       if (oldFunc === undefined) {
         newFuncs.push(AddFunction(func));
-      } else if (oldFunc.path !== func.path) {
+      } else if (oldFunc.url !== func.url) {
         newFuncs.push(UpdateFunction(func));
       }
     });
@@ -208,7 +208,7 @@ const planTriggers = (
       const oldTrigger = oldTriggerMap.get(triggerKey(trigger));
       if (oldTrigger === undefined) {
         newTriggers.push(AddTrigger(trigger));
-      } else if (oldTrigger.path !== trigger.path) {
+      } else if (oldTrigger.url !== trigger.url) {
         newTriggers.push(UpdateTrigger(trigger));
       }
     });

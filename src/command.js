@@ -47,7 +47,7 @@ export type AddIndexCommand = {
 export type DeleteIndexCommand = {
   type: 'DeleteIndex',
   collection: string,
-  columnName: string
+  indexName: string
 }
 export type UpdateIndexCommand = {
   type: 'UpdateIndex',
@@ -155,7 +155,7 @@ const DeleteIndex = (collection: string, name: string): DeleteIndexCommand => (
   {
     type: DeleteIndex.type,
     collection,
-    columnName: name
+    indexName: name
   }
 );
 DeleteIndex.type = 'DeleteIndex';

@@ -89,7 +89,7 @@ const handleParseError = (response) => {
 
 // verify function, trigger, and collection uniqueness
 // verify that trigger types are valid
-
+// Verify that deleted collections are empty before executing
 // Verify that all of the indices only reference columns which exist.
 const verifyIndexes = (collection: CollectionDefinition) => {
   Object.keys(collection.indexes).forEach((indexName) => {

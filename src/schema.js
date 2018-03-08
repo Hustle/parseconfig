@@ -39,7 +39,7 @@ export type RolePermissions = { [string]: boolean }
 
 export type FunctionDefinition = {
   functionName: string,
-  path: string
+  url: string
 }
 
 // Just here to DRY up the typetime/runtime definitions since
@@ -57,7 +57,7 @@ export type TriggerType = $Keys<typeof triggerTypesObj>;
 export type TriggerDefinition = {
   triggerName: TriggerType,
   className: string,
-  path: string
+  url: string
 }
 
 export {
