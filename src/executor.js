@@ -24,18 +24,26 @@ import type {
   Command
 } from './command';
 
-class Executor {
-
-  parseUrl: string
-  applicationId: string
-  accessKey: string
-
-  constructor(parseUrl, applicationId, accessKey) {
-    this.parseUrl = parseUrl;
-    this.applicationId = applicationId;
-    this.accessKey = accessKey;
+const flatten = <A>(arrs: Array<Array<A>>): Array<A> => {
+  if (arrs.length === 0) {
+    return [];
   }
-}
+  return arrs[0].concat(...arrs.slice(1));
+};
+
+const execute = (
+  commands: Array<Command>,
+  parseUrl: string,
+  applicationId: string,
+  accessKey: string
+): void => {
+  executeRequests(
+    flatten(commands.map(commandToAxiosRequests)),
+    parseUrl,
+    applicationId,
+    accessKey
+  );
+};
 
 const executeRequests = (
   requests: Array<AxiosXHRConfig<any>>,
@@ -47,8 +55,8 @@ const executeRequests = (
   const httpClient = axios.create({
     baseURL: parseUrl,
     headers: {
-      X-Parse-Application-Id: applicationId
-      X-Parse-Master-Key: accessKey
+      ['X-Parse-Application-Id']: applicationId,
+      ['X-Parse-Master-Key']: accessKey
     }
   });
 
@@ -215,4 +223,8 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
     default:
       return (command: empty); // <- Exhaustiveness check
   }
+}
+
+export {
+  execute
 }

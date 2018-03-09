@@ -11,15 +11,16 @@ import type {
   ParseSchemaResponse,
   Schema,
   CollectionDefinition,
-  ColumnDefinition,
-  IndexDefinition,
-  CollectionPermissions,
-  RolePermissions
+  FunctionDefinition,
+  TriggerDefinition
 } from './schema';
 
 import type {
   Command
 } from './command';
+
+import { plan } from './planner';
+import { execute } from './executor';
 
 const PARSE_SERVER_URL = process.env.PARSE_SERVER_URL;
 
@@ -42,34 +43,87 @@ program.usage('parseconfig [commands]');
 program
   .command('plan <schema> <parseUrl>')
   .description('Generate a gameplan that can be run using the execute command')
-  .option('-i', '--application-id <n>', 'Application id of the parse server')
-  .option('-k', '--key <n>', 'Parse access key')
-  .action((schema, parseUrl, options: { applicationId: ?string, key: ?string }) => {
-    
-    const applicationId = options.applicationId || process.env.PARSE_APPLICATION_ID;
-    const key = options.key || process.env.PARSE_MASTER_KEY;
+  .option('-i, --application-id <n>', 'Application id of the parse server')
+  .option('-k, --key <n>', 'Parse access key')
+  .action(async (schema, parseUrl, options: { applicationId: ?string, key: ?string }) => {
+    const applicationId: ?string = options.applicationId || process.env.PARSE_APPLICATION_ID;
+    const key: ?string = options.key || process.env.PARSE_MASTER_KEY;
 
     if (applicationId === null || applicationId === undefined) {
-      throw 'Application id must be passed via -i or PARSE_APPLICATION_ID';
+      console.log('Application id must be passed via -i or PARSE_APPLICATION_ID');
+      process.exit();
+      throw 'error'; // to make flow happy
     }
     if (key === null || key === undefined) {
-      throw 'Parse Master Key must be passed via -k or PARSE_MASTER_KEY';
+      console.log('Parse Master Key must be passed via -k or PARSE_MASTER_KEY');
+      process.exit();
+      throw 'error'; // to make flow happy
     }
+
+    const newSchema = getNewSchema(schema);
+    const oldSchema = await getLiveSchema(parseUrl, applicationId, key);
+    const commands = plan(newSchema, oldSchema);
+    console.log(JSON.stringify(commands));
     
-    plan(schema, parseUrl, applicationId, key).then(results => {
-      console.log(JSON.stringify(results));
-    });
+    //plan(schema, parseUrl, applicationId, key).then(results => {
+    //  console.log(JSON.stringify(results));
+    //});
   })
 
-const plan = (schema: string, parseUrl: string, applicationId: string, key: string) => {
-  return axios.get(parseUrl, {
+const getNewSchema = (schemaFile: string): Schema => {
+  const fileContents = fs.readFileSync(schemaFile, {encoding: 'UTF-8'});
+  return JSON.parse(fileContents);
+};
+
+const getLiveSchema = async (
+  parseUrl: string,
+  applicationId: string,
+  key: string
+): Promise<Schema> => {
+
+  const httpClient = axios.create({
+    baseURL: parseUrl,
     headers: {
-      'X-Parse-Application-Id': applicationId,
-      'X-Parse-Master-Key': key,
+      ['X-Parse-Application-Id']: applicationId,
+      ['X-Parse-Master-Key']: key
     }
-  }).then(handleParseResponse, handleParseError)
-    .then((results) => {
+  });
+  
+  const collections = await httpClient({
+    method: 'get',
+    url: '/schemas'
+  }).then(response => response.data.results)
+    .catch((e) => {
+      console.log('Unable to retrieve collections from Parse.', e);
+      process.exit();
+      return Promise.reject(); // satisfy flow
     });
+  
+  const functions = await httpClient({
+    method: 'get',
+    url: '/hooks/functions'
+  }).then(response => response.data)
+    .catch(() => {
+      console.log('Unable to retrieve functions from Parse.');
+      process.exit();
+      return Promise.reject(); // satisfy flow
+    });
+  
+  const triggers = await httpClient({
+    method: 'get',
+    url: '/hooks/triggers'
+  }).then(response => response.data)
+    .catch(() => {
+      console.log('Unable to retrieve triggers from Parse.');
+      process.exit();
+      return Promise.reject(); // satisfy flow
+    });
+
+  return {
+    collections,
+    functions,
+    triggers,
+  };
 };
 
 const handleParseResponse = (response: $AxiosXHR<ParseSchemaResponse>) => {
@@ -86,6 +140,8 @@ const handleParseError = (response) => {
   }
   return Promise.reject(result);
 };
+
+program.parse(process.argv);
 
 // verify function, trigger, and collection uniqueness
 // verify that trigger types are valid

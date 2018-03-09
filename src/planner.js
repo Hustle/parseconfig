@@ -38,6 +38,19 @@ const deepEquals = (a: any, b: any): boolean => {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+const plan = (
+  newSchema: Schema,
+  oldSchema: Schema
+): Array<Command> => {
+  return planCollections(
+    newSchema.collections,
+    oldSchema.collections
+  ).concat(
+    planFunctions(newSchema.functions, oldSchema.functions),
+    planTriggers(newSchema.triggers, oldSchema.triggers)
+  );
+};
+
 const planCollections = (
   newSchema: Array<CollectionDefinition>,
   oldSchema: Array<CollectionDefinition>
@@ -135,7 +148,10 @@ const planCollections = (
       if (newC === undefined) {
         return; // Deleted Collection, handled above
       }
-      const indexes: { [string]: IndexDefinition } = collection.indexes;
+      if (collection.indexes === undefined) {
+        console.log(collection);
+      }
+      const indexes: { [string]: IndexDefinition } = collection.indexes || {};
       Object.keys(indexes).forEach((name) => {
         const newIndex = newC.indexes[name];
         if (newIndex === undefined) {
@@ -229,6 +245,7 @@ const planTriggers = (
 };
 
 export {
+  plan,
   planCollections,
   planFunctions,
   planTriggers,
