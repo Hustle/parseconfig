@@ -56,23 +56,23 @@ describe('planner', function() {
     functions: [
       {
         functionName: 'getFoobar',
-        path: '/getFoobar'
+        url: '/getFoobar'
       },
       {
         functionName: 'addFoobar',
-        path: '/addFoobar'
+        url: '/addFoobar'
       }
     ],
     triggers: [
       {
         className: 'Foo',
         triggerName: 'beforeSave',
-        path: '/foo/beforeSave'
+        url: '/foo/beforeSave'
       },
       {
         className: 'Bar',
         triggerName: 'afterSave',
-        path: '/bar/afterSave'
+        url: '/bar/afterSave'
       }
     ]
   }
@@ -215,7 +215,7 @@ describe('planner', function() {
       const oldSchema = deepCopy(defaultSchema.functions);
       const newSchema = deepCopy(defaultSchema.functions);
 
-      newSchema[0].path = '/some/other/path';
+      newSchema[0].url = '/some/other/path';
       const newFunc = UpdateFunction(
         newSchema[0]
       );
@@ -256,7 +256,7 @@ describe('planner', function() {
       const oldSchema = deepCopy(defaultSchema.triggers);
       const newSchema = deepCopy(defaultSchema.triggers);
 
-      newSchema[0].path = '/some/other/path';
+      newSchema[0].url = '/some/other/path';
       const newFunc = UpdateTrigger(
         newSchema[0]
       );
