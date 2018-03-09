@@ -2,6 +2,7 @@
 
 import url from 'url';
 import fs from 'fs';
+import readline from 'readline';
 import path from 'path';
 import program from 'commander';
 import axios from 'axios';
@@ -14,6 +15,13 @@ import type {
   FunctionDefinition,
   TriggerDefinition
 } from './schema';
+
+import {
+  AddIndex,
+  UpdateIndex,
+  DeleteIndex,
+  prettyPrintCommand,
+} from './command';
 
 import type {
   Command
@@ -42,7 +50,8 @@ program.usage('parseconfig [commands]');
 type Options = {
   applicationId: ?string,
   key: ?string,
-  hookUrl: ?string
+  hookUrl: ?string,
+  ignoreIndexes: boolean
 }
 
 program
@@ -51,6 +60,7 @@ program
   .option('-i, --application-id <s>', 'Application id of the parse server')
   .option('-k, --key <s>', 'Parse access key')
   .option('-u, --hook-url <s>', 'Base url for functions and triggers')
+  .option('--ignore-indexes', 'Skips verification and updating of indices')
   .action(async (schema, parseUrl, options: Options) => {
     const applicationId: ?string = options.applicationId || process.env.PARSE_APPLICATION_ID;
     const key: ?string = options.key || process.env.PARSE_MASTER_KEY;
@@ -69,12 +79,70 @@ program
 
     const newSchema = getNewSchema(schema);
     const oldSchema = await getLiveSchema(parseUrl, applicationId, key);
-    const commands = plan(newSchema, oldSchema, hookUrl);
+    let commands = plan(newSchema, oldSchema, hookUrl);
+    if (options.ignoreIndexes) {
+      commands = commands.filter(c => (
+        c.type !== AddIndex.type
+        && c.type !== UpdateIndex.type
+        && c.type !== DeleteIndex.type
+      ));
+    }
     console.log(JSON.stringify(commands));
-    
-    //plan(schema, parseUrl, applicationId, key).then(results => {
-    //  console.log(JSON.stringify(results));
-    //});
+  })
+
+program
+  .command('apply <schema> <parseUrl>')
+  .description('Generate a gameplan that can be run using the execute command')
+  .option('-i, --application-id <s>', 'Application id of the parse server')
+  .option('-k, --key <s>', 'Parse access key')
+  .option('-u, --hook-url <s>', 'Base url for functions and triggers')
+  .option('--ignore-indexes', 'Skips verification and updating of indices')
+  .action(async (schema, parseUrl, options: Options) => {
+    const applicationId: ?string = options.applicationId || process.env.PARSE_APPLICATION_ID;
+    const key: ?string = options.key || process.env.PARSE_MASTER_KEY;
+    const hookUrl: ?string = options.hookUrl || process.env.PARSE_HOOK_URL || null;
+
+    if (applicationId === null || applicationId === undefined) {
+      console.log('Application id must be passed via -i or PARSE_APPLICATION_ID');
+      process.exit();
+      throw 'error'; // to make flow happy
+    }
+    if (key === null || key === undefined) {
+      console.log('Parse Master Key must be passed via -k or PARSE_MASTER_KEY');
+      process.exit();
+      throw 'error'; // to make flow happy
+    }
+
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    const newSchema = getNewSchema(schema);
+    const oldSchema = await getLiveSchema(parseUrl, applicationId, key);
+    let commands = plan(newSchema, oldSchema, hookUrl);
+    if (options.ignoreIndexes) {
+      commands = commands.filter(c => (
+        c.type !== AddIndex.type
+        && c.type !== UpdateIndex.type
+        && c.type !== DeleteIndex.type
+      ));
+    }
+    commands.forEach((command) => console.log(prettyPrintCommand(command)));
+    rl.question('Do you want to execute these commands? [y/N]', (answer) => {
+      if (answer.toLowerCase() !== 'y') {
+        console.log('Exiting without making changes');
+        process.exit();
+      }
+      
+      execute(
+        commands,
+        parseUrl,
+        applicationId,
+        key
+      );
+      rl.close()
+    });
   })
 
 const getNewSchema = (schemaFile: string): Schema => {

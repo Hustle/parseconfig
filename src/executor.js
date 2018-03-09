@@ -63,7 +63,7 @@ const executeRequests = (
   // Execute requests in order
   requests.reduce((previous, current) => (
     previous.then(() => {
-      console.log('Executing', current);
+      console.log('Executing', JSON.stringify(current));
       httpClient(current);
     })
   ), Promise.resolve());
@@ -78,18 +78,18 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
     case AddCollection.type:
       return [{
         method: 'post',
-        url: `/parse/schemas/${command.definition.className}`,
+        url: `/schemas/${command.definition.className}`,
         data: command.definition
       }];
     case DeleteCollection.type:
       return [{
         method: 'delete',
-        url: `/parse/schemas/${command.collectionName}`
+        url: `/schemas/${command.collectionName}`
       }];
     case AddColumn.type:
       return [{
         method: 'put',
-        url: `/parse/schemas/${command.collection}`,
+        url: `/schemas/${command.collection}`,
         data: {
           className: command.collection,
           fields: {
@@ -101,7 +101,7 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
     case DeleteColumn.type:
       return [{
         method: 'put',
-        url: `/parse/schemas/${command.collection}`,
+        url: `/schemas/${command.collection}`,
         data: {
           className: command.collection,
           fields: {
@@ -114,7 +114,7 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
       return [
         {
           method: 'put',
-          url: `/parse/schemas/${command.collection}`,
+          url: `/schemas/${command.collection}`,
           data: {
             className: command.collection,
             fields: {
@@ -125,7 +125,7 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
         },
         {
           method: 'put',
-          url: `/parse/schemas/${command.collection}`,
+          url: `/schemas/${command.collection}`,
           data: {
             className: command.collection,
             fields: {
@@ -138,7 +138,7 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
     case AddIndex.type:
       return [{
         method: 'put',
-        url: `/parse/schemas/${command.collection}`,
+        url: `/schemas/${command.collection}`,
         data: {
           className: command.collection,
           fields: {},
@@ -150,7 +150,7 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
     case DeleteIndex.type:
       return [{
         method: 'put',
-        url: `/parse/schemas/${command.collection}`,
+        url: `/schemas/${command.collection}`,
         data: {
           className: command.collection,
           fields: {},
@@ -163,7 +163,7 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
       return [
         {
           method: 'put',
-          url: `/parse/schemas/${command.collection}`,
+          url: `/schemas/${command.collection}`,
           data: {
             className: command.collection,
             fields: {},
@@ -174,7 +174,7 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
         },
         {
           method: 'put',
-          url: `/parse/schemas/${command.collection}`,
+          url: `/schemas/${command.collection}`,
           data: {
             className: command.collection,
             fields: {},
@@ -187,37 +187,37 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
     case AddFunction.type:
       return [{
         method: 'post',
-        url: `/parse/hooks/functions`,
+        url: `/hooks/functions`,
         data: command.definition
       }];
     case DeleteFunction.type:
       return [{
         method: 'put',
-        url: `/parse/hooks/functions/${command.functionName}`,
+        url: `/hooks/functions/${command.functionName}`,
         data: { __op: 'Delete' }
       }];
     case UpdateFunction.type:
       return [{
         method: 'put',
-        url: `/parse/hooks/functions/${command.definition.functionName}`,
+        url: `/hooks/functions/${command.definition.functionName}`,
         data: { url: command.definition.url }
       }];
     case AddTrigger.type:
       return [{
         method: 'post',
-        url: `/parse/hooks/triggers`,
+        url: `/hooks/triggers`,
         data: command.definition
       }];
     case DeleteTrigger.type:
       return [{
         method: 'put',
-        url: `/parse/hooks/triggers/${command.className}/${command.triggerName}`,
+        url: `/hooks/triggers/${command.className}/${command.triggerName}`,
         data: { __op: 'Delete' }
       }];
     case UpdateTrigger.type:
       return [{
         method: 'put',
-        url: `/parse/hooks/triggers/${command.definition.className}/${command.definition.triggerName}`,
+        url: `/hooks/triggers/${command.definition.className}/${command.definition.triggerName}`,
         data: { url: command.definition.url }
       }];
     default:

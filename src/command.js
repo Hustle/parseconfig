@@ -219,6 +219,41 @@ const UpdateTrigger = (definition: TriggerDefinition): UpdateTriggerCommand => (
 );
 UpdateTrigger.type = 'UpdateTrigger';
 
+const prettyPrintCommand = (command: Command): string => {
+  switch (command.type) {
+    case AddCollection.type:
+      return `Add Collection "${command.definition.className}"`;
+    case DeleteCollection.type:
+      return `Delete Collection "${command.collectionName}"`;
+    case AddColumn.type:
+      return `Add Column "${command.name}" to "${command.collection}"`;
+    case DeleteColumn.type:
+      return `Delete Column "${command.columnName}" from "${command.collection}"`;
+    case UpdateColumn.type:
+      return `Update Column "${command.name}" on "${command.collection}"`;
+    case AddIndex.type:
+      return `Add Index "${command.definition.indexName}" to "${command.definition.className}"`;
+    case DeleteIndex.type:
+      return `Delete Index "${command.indexName}" from "${command.collection}"`;
+    case UpdateIndex.type:
+      return `Update Index "${command.definition.indexName}" on "${command.definition.className}"`;
+    case AddFunction.type:
+      return `Add Function "${command.definition.functionName}"`;
+    case DeleteFunction.type:
+      return `Add Function "${command.functionName}"`;
+    case UpdateFunction.type:
+      return `Update Function "${command.definition.functionName}"`;
+    case AddTrigger.type:
+      return `Add Trigger "${command.definition.triggerName}" on "${command.definition.className}"`;
+    case DeleteTrigger.type:
+      return `Delete Trigger "${command.triggerName}" on "${command.className}"`;
+    case UpdateTrigger.type:
+      return `Update Trigger "${command.definition.triggerName}" on "${command.definition.className}"`;
+    default:
+      return (command: empty); // exhaustiveness check
+  }
+};
+
 
 export {
   AddCollection,
@@ -235,4 +270,5 @@ export {
   AddTrigger,
   DeleteTrigger,
   UpdateTrigger,
+  prettyPrintCommand,
 }
