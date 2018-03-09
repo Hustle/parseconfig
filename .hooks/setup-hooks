@@ -1,0 +1,4 @@
+#!/bin/sh
+
+set -euo pipefail
+ln -s $PWD/.hooks/pre-commit ./.git/hooks/pre-commit
