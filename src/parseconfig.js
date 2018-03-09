@@ -39,15 +39,22 @@ program.usage('parseconfig [commands]');
 // --non-interactive: doesn't ask for confirmation before applying gameplan
 // --disallow-column-redefine: returns an error if the definition of a column changes
 // --disallow-index-redefine: returns an error if the definition of an index changes
+type Options = {
+  applicationId: ?string,
+  key: ?string,
+  hookUrl: ?string
+}
 
 program
   .command('plan <schema> <parseUrl>')
   .description('Generate a gameplan that can be run using the execute command')
-  .option('-i, --application-id <n>', 'Application id of the parse server')
-  .option('-k, --key <n>', 'Parse access key')
-  .action(async (schema, parseUrl, options: { applicationId: ?string, key: ?string }) => {
+  .option('-i, --application-id <s>', 'Application id of the parse server')
+  .option('-k, --key <s>', 'Parse access key')
+  .option('-u, --hook-url <s>', 'Base url for functions and triggers')
+  .action(async (schema, parseUrl, options: Options) => {
     const applicationId: ?string = options.applicationId || process.env.PARSE_APPLICATION_ID;
     const key: ?string = options.key || process.env.PARSE_MASTER_KEY;
+    const hookUrl: ?string = options.hookUrl || process.env.PARSE_HOOK_URL || null;
 
     if (applicationId === null || applicationId === undefined) {
       console.log('Application id must be passed via -i or PARSE_APPLICATION_ID');
@@ -62,7 +69,7 @@ program
 
     const newSchema = getNewSchema(schema);
     const oldSchema = await getLiveSchema(parseUrl, applicationId, key);
-    const commands = plan(newSchema, oldSchema);
+    const commands = plan(newSchema, oldSchema, hookUrl);
     console.log(JSON.stringify(commands));
     
     //plan(schema, parseUrl, applicationId, key).then(results => {
@@ -148,8 +155,8 @@ program.parse(process.argv);
 // Verify that deleted collections are empty before executing
 // Verify that all of the indices only reference columns which exist.
 const verifyIndexes = (collection: CollectionDefinition) => {
-  Object.keys(collection.indexes).forEach((indexName) => {
-    const indexDef = collection.indexes[indexName];
+  Object.keys(collection.indexes || {}).forEach((indexName) => {
+    const indexDef = (collection.indexes || {})[indexName];
     Object.keys(indexDef).forEach((indexCol) => {
       if (!Object.keys(collection.fields).includes((columnName) => columnName === indexCol)) {
         throw `Invalid index: $indexDef includes non-existant column "$indexCol"`;

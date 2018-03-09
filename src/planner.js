@@ -40,14 +40,15 @@ const deepEquals = (a: any, b: any): boolean => {
 
 const plan = (
   newSchema: Schema,
-  oldSchema: Schema
+  oldSchema: Schema,
+  hookUrl: ?string
 ): Array<Command> => {
   return planCollections(
     newSchema.collections,
     oldSchema.collections
   ).concat(
-    planFunctions(newSchema.functions, oldSchema.functions),
-    planTriggers(newSchema.triggers, oldSchema.triggers)
+    planFunctions(newSchema.functions, oldSchema.functions, hookUrl),
+    planTriggers(newSchema.triggers, oldSchema.triggers, hookUrl)
   );
 };
 
@@ -127,9 +128,9 @@ const planCollections = (
       if (old === undefined) {
         return; // New Collection, handled above
       }
-      const indexes: { [string]: IndexDefinition } = collection.indexes;
+      const indexes: { [string]: IndexDefinition } = (collection.indexes || {});
       Object.keys(indexes).forEach((name) => {
-        const oldIndex = old.indexes[name];
+        const oldIndex = (old.indexes || {})[name];
         if (oldIndex === undefined) {
           ni.push(AddIndex(collection.className, name, indexes[name]));
         } else if (!deepEquals(oldIndex, indexes[name])) {
@@ -148,12 +149,9 @@ const planCollections = (
       if (newC === undefined) {
         return; // Deleted Collection, handled above
       }
-      if (collection.indexes === undefined) {
-        console.log(collection);
-      }
       const indexes: { [string]: IndexDefinition } = collection.indexes || {};
       Object.keys(indexes).forEach((name) => {
-        const newIndex = newC.indexes[name];
+        const newIndex = (newC.indexes || {})[name];
         if (newIndex === undefined) {
           di.push(DeleteIndex(collection.className, name));
         }
@@ -173,11 +171,10 @@ const planCollections = (
   )
 };
 
-// TODO functions can be directly update via the API
-// We should probably just expand the vocabluary of commands to include updates for columns and indices and then translate those to two API calls in the end.
 const planFunctions = (
   newSchema: Array<FunctionDefinition>,
-  oldSchema: Array<FunctionDefinition>
+  oldSchema: Array<FunctionDefinition>,
+  hookUrl: ?string
 ): Array<Command> => {
   const oldFuncMap = new Map(oldSchema.map(c => [c.functionName, c]));
   const newFuncMap = new Map(newSchema.map(c => [c.functionName, c]));
@@ -185,6 +182,9 @@ const planFunctions = (
   const newFunctions = (() => {
     const newFuncs = [];
     newSchema.forEach(func => {
+      if (hookUrl) {
+        func.url = hookUrl + func.url;
+      }
       const oldFunc = oldFuncMap.get(func.functionName);
       if (oldFunc === undefined) {
         newFuncs.push(AddFunction(func));
@@ -211,7 +211,8 @@ const planFunctions = (
 // TODO triggers can e directly updated via PUT
 const planTriggers = (
   newSchema: Array<TriggerDefinition>,
-  oldSchema: Array<TriggerDefinition>
+  oldSchema: Array<TriggerDefinition>,
+  hookUrl: ?string
 ): Array<Command> => {
   const triggerKey = (t: TriggerDefinition): string => `${t.triggerName}-${t.className}`;
   
@@ -221,6 +222,9 @@ const planTriggers = (
   const newTriggers = (() => {
     const newTriggers = [];
     newSchema.forEach(trigger => {
+      if (hookUrl) {
+        trigger.url = hookUrl + trigger.url;
+      }
       const oldTrigger = oldTriggerMap.get(triggerKey(trigger));
       if (oldTrigger === undefined) {
         newTriggers.push(AddTrigger(trigger));

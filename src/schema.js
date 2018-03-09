@@ -14,7 +14,7 @@ export type CollectionDefinition = {
   className: string,
   fields: { [string]: ColumnDefinition },
   classLevelPermissions: CollectionPermissions,
-  indexes: { [string]: IndexDefinition }
+  indexes?: { [string]: IndexDefinition }
 }
 
 export type ColumnDefinition = {
