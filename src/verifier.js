@@ -56,7 +56,7 @@ const verifyCollectionIndexes = (collection: CollectionDefinition): Array<Valida
   Object.keys(collection.indexes || {}).forEach((indexName) => {
     const indexDef = (collection.indexes || {})[indexName];
     Object.keys(indexDef).forEach((indexCol) => {
-      if (!Object.keys(collection.fields).includes((columnName) => columnName === indexCol)) {
+      if (!Object.keys(collection.fields).find((columnName) => columnName === indexCol)) {
         errors.push(invalidIndex(indexName, indexCol));
       }
     });

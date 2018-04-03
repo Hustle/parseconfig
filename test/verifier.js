@@ -3,25 +3,18 @@ import assert from 'assert';
 import { verifySchema } from '../dist/verifier';
 
 import {
-  AddCollection,
-  DeleteCollection,
-  AddColumn,
-  DeleteColumn,
-  UpdateColumn,
-  AddIndex,
-  DeleteIndex,
-  UpdateIndex,
-  AddFunction,
-  DeleteFunction,
-  UpdateFunction,
-  AddTrigger,
-  DeleteTrigger,
-  UpdateTrigger,
-} from '../dist/command';
+  duplicateClass,
+  invalidIndex,
+  duplicateIndex,
+  duplicateColumn,
+  duplicateTrigger,
+  invalidTrigger,
+  duplicateFunction,
+} from '../dist/validation-error';
 
 const deepCopy = (any) => JSON.parse(JSON.stringify(any));
 
-describe('planner', function() {
+describe('verifier', function() {
   const defaultSchema = {
     collections: [
       {
@@ -76,18 +69,61 @@ describe('planner', function() {
       }
     ]
   }
-  /*
-  describe('planCollections()', function() {
-    it('should add a missing collection', function() {
-      const newSchema = deepCopy(defaultSchema.collections);
-      const oldSchema = deepCopy(defaultSchema.collections).slice(1);
-      
-      const newColl = deepCopy(defaultSchema.collections)[0];
+
+  describe('verifySchema()', function() {
+    it('should error on duplicate collections', function() {
+      const schema = deepCopy(defaultSchema);
+      const dupCollection = schema.collections[0]
+      schema.collections.push(dupCollection);
+
       assert.deepEqual(
-        planCollections(newSchema, oldSchema),
-        [AddCollection(newColl)]
+        verifySchema(schema),
+        [duplicateClass(dupCollection)]
+      );
+    });
+    it('should error on invalid indices', function() {
+      const schema = deepCopy(defaultSchema);
+      delete schema.collections[0].fields.AAA;
+
+      assert.deepEqual(
+        verifySchema(schema),
+        [invalidIndex(Object.keys(schema.collections[0].indexes)[0], 'AAA')]
+      );
+    });
+    it('should error on duplicate indices', function() {
+      assert(true); // index uniqueness guaranteed by object semantics
+    });
+    it('should error on duplicate fields', function() {
+      assert(true); // field uniqueness guaranteed by object semantics
+    });
+    it('should error on duplicate triggers', function() {
+      const schema = deepCopy(defaultSchema);
+      const dupTrigger = schema.triggers[0]
+      schema.triggers.push(dupTrigger);
+
+      assert.deepEqual(
+        verifySchema(schema),
+        [duplicateTrigger(dupTrigger)]
+      );
+    });
+    it('should error on invalid triggers', function() {
+      const schema = deepCopy(defaultSchema);
+      schema.triggers[0].triggerName = 'INVALID';
+
+      assert.deepEqual(
+        verifySchema(schema),
+        [invalidTrigger(schema.triggers[0])]
+      );
+    });
+    it('should error on duplicate functions', function() {
+      const schema = deepCopy(defaultSchema);
+      const dupFunc = schema.functions[0]
+      schema.functions.push(dupFunc);
+
+      assert.deepEqual(
+        verifySchema(schema),
+        [duplicateFunction(dupFunc)]
       );
     });
   });
-  */
 });
