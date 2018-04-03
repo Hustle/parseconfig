@@ -246,35 +246,4 @@ const getLiveSchema = async (
     triggers,
   };
 };
-
-const handleParseResponse = (response: $AxiosXHR<ParseSchemaResponse>) => {
-  if (response.data.error) {
-    return Promise.reject(response.data.error);
-  }
-  return response;
-};
-
-const handleParseError = (response) => {
-  let result = response.data.error;
-  if (result.error) {
-    result = result.error;
-  }
-  return Promise.reject(result);
-};
-
 program.parse(process.argv);
-
-// verify function, trigger, and collection uniqueness
-// verify that trigger types are valid
-// Verify that deleted collections are empty before executing
-// Verify that all of the indices only reference columns which exist.
-const verifyIndexes = (collection: CollectionDefinition) => {
-  Object.keys(collection.indexes || {}).forEach((indexName) => {
-    const indexDef = (collection.indexes || {})[indexName];
-    Object.keys(indexDef).forEach((indexCol) => {
-      if (!Object.keys(collection.fields).includes((columnName) => columnName === indexCol)) {
-        throw `Invalid index: $indexDef includes non-existant column "$indexCol"`;
-      }
-    });
-  });
-};
