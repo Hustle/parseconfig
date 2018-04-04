@@ -21,18 +21,18 @@ import {
   duplicateIndex,
   duplicateColumn,
   duplicateTrigger,
-  invalidTrigger,
+  invalidTriggerName,
+  invalidTriggerClass,
   duplicateFunction,
 } from './validation-error';
 
 const verifySchema = (schema: Schema): Array<ValidationError> => {
   return verifyCollections(schema.collections).concat(
     verifyFunctions(schema.functions),
-    verifyTriggers(schema.triggers)
+    verifyTriggers(schema.triggers, schema.collections)
   );
 };
 
-// verify function, trigger, and collection uniqueness
 // Verify that deleted collections are empty before executing
 // Verify that the classes exist for each trigger
 const verifyCollections = (collections: Array<CollectionDefinition>): Array<ValidationError> => {
@@ -90,15 +90,17 @@ const verifyColumnUniqueness = (collection: CollectionDefinition): Array<Validat
   return errors;
 };
 
-const verifyTriggers = (triggers: Array<TriggerDefinition>): Array<ValidationError> => {
+const verifyTriggers = (
+  triggers: Array<TriggerDefinition>,
+  collections: Array<CollectionDefinition>
+): Array<ValidationError> => {
+  
   const errors: Array<ValidationError> = [];
+  const collectionNames = collections.map(c => c.className);
   const names = new Set();
   const key = (trigger) => `${trigger.className}.${trigger.triggerName}`
   triggers.forEach(trigger => {
-    const nError: ?ValidationError = verifyTrigger(trigger);
-    if (nError) {
-      errors.push(nError);
-    }
+    errors.push(...verifyTrigger(trigger, collectionNames));
     if (names.has(key(trigger))) {
       errors.push(duplicateTrigger(trigger));
     } else {
@@ -108,12 +110,19 @@ const verifyTriggers = (triggers: Array<TriggerDefinition>): Array<ValidationErr
   return errors;
 };
 
-const verifyTrigger = (trigger: TriggerDefinition): ?ValidationError => {
-  if (triggerTypes.includes(trigger.triggerName)) {
-    return null;
-  } else {
-    return invalidTrigger(trigger);
+const verifyTrigger = (
+  trigger: TriggerDefinition,
+  collections: Array<string>
+): Array<ValidationError> => {
+  
+  const errors = [];
+  if (!triggerTypes.includes(trigger.triggerName)) {
+    errors.push(invalidTriggerName(trigger));
   }
+  if (!collections.includes(trigger.className)) {
+    errors.push(invalidTriggerClass(trigger));
+  }
+  return errors;
 };
 
 const verifyFunctions = (functions: Array<FunctionDefinition>): Array<ValidationError> => {
