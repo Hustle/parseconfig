@@ -10,7 +10,11 @@ import type {
   RolePermissions,
   FunctionDefinition,
   TriggerDefinition,
-  TriggerType
+  TriggerType,
+} from './schema';
+
+import {
+  prettyPrintCollectionPermissions,
 } from './schema';
 
 export type AddCollectionCommand = {
@@ -80,9 +84,15 @@ export type UpdateTriggerCommand = {
   type: 'UpdateTrigger',
   definition: TriggerDefinition
 }
+export type UpdateCollectionPermissionsCommand = {
+  type: 'UpdateCollectionPermissions',
+  collection: string,
+  definition: CollectionPermissions
+}
 export type Command
   = AddCollectionCommand
   | DeleteCollectionCommand
+  | UpdateCollectionPermissionsCommand
   | AddColumnCommand
   | DeleteColumnCommand
   | UpdateColumnCommand
@@ -219,6 +229,18 @@ const UpdateTrigger = (definition: TriggerDefinition): UpdateTriggerCommand => (
 );
 UpdateTrigger.type = 'UpdateTrigger';
 
+const UpdateCollectionPermissions = (
+  collection: string,
+  definition: CollectionPermissions
+): UpdateCollectionPermissionsCommand => (
+  {
+    type: UpdateCollectionPermissions.type,
+    collection,
+    definition
+  }
+);
+UpdateCollectionPermissions.type = 'UpdateCollectionPermissions';
+
 const prettyPrintCommand = (command: Command): string => {
   switch (command.type) {
     case AddCollection.type:
@@ -249,6 +271,8 @@ const prettyPrintCommand = (command: Command): string => {
       return `Delete Trigger "${command.triggerName}" on "${command.className}"`;
     case UpdateTrigger.type:
       return `Update Trigger "${command.definition.triggerName}" on "${command.definition.className}"`;
+    case UpdateCollectionPermissions.type:
+      return `Update Permissions on class "${command.collection}" to "${prettyPrintCollectionPermissions(command.definition)}"`;
     default:
       return (command: empty); // exhaustiveness check
   }
@@ -270,5 +294,6 @@ export {
   AddTrigger,
   DeleteTrigger,
   UpdateTrigger,
+  UpdateCollectionPermissions,
   prettyPrintCommand,
 }

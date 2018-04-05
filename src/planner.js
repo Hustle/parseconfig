@@ -25,6 +25,7 @@ import {
   AddTrigger,
   DeleteTrigger,
   UpdateTrigger,
+  UpdateCollectionPermissions,
 } from './command';
 
 import type {
@@ -80,6 +81,22 @@ const planCollections = (
       }
     });
     return dc;
+  })();
+  const updatedPermissions = (() => {
+    const oc = oldColMap;
+    const nc = [];
+    newSchema.forEach(collection => {
+      const old = oc.get(collection.className);
+      if (old === undefined) {
+        return; // New Collection, handled above
+      }
+      const newPerms = collection.classLevelPermissions;
+      const oldPerms = old.classLevelPermissions;
+      if (!deepEquals(newPerms, oldPerms)) {
+        nc.push(UpdateCollectionPermissions(collection.className, newPerms));
+      }
+    });
+    return nc;
   })();
   const newColumns = (() => {
     const oc = oldColMap;
@@ -164,6 +181,7 @@ const planCollections = (
   // indices which use them
   return newCollections.concat(
     deletedCollections,
+    updatedPermissions,
     deletedIndexes,
     deletedColumns,
     newColumns,

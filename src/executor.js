@@ -18,6 +18,7 @@ import {
   AddTrigger,
   DeleteTrigger,
   UpdateTrigger,
+  UpdateCollectionPermissions,
 } from './command';
 
 import type {
@@ -219,6 +220,15 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
         method: 'put',
         url: `/hooks/triggers/${command.definition.className}/${command.definition.triggerName}`,
         data: { url: command.definition.url }
+      }];
+    case UpdateCollectionPermissions.type:
+      return [{
+        method: 'put',
+        url: `/schemas/${command.collection}`,
+        data: {
+          className: command.collection,
+          classLevelPermissions: command.definition
+        }
       }];
     default:
       return (command: empty); // <- Exhaustiveness check

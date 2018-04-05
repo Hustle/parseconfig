@@ -17,6 +17,7 @@ import {
   AddTrigger,
   DeleteTrigger,
   UpdateTrigger,
+  UpdateCollectionPermissions,
 } from '../dist/command';
 
 const deepCopy = (any) => JSON.parse(JSON.stringify(any));
@@ -38,6 +39,16 @@ describe('planner', function() {
           AAA_index: {
             AAA: 1
           }
+        },
+        classLevelPermissions: {
+          find: {
+            ['role:user']: true
+          },
+          get: {},
+          create: {},
+          update: {},
+          delete: {},
+          addField: {}
         }
       },
       {
@@ -182,6 +193,20 @@ describe('planner', function() {
       assert.deepEqual(
         planCollections(newSchema, oldSchema),
         [newIndex]
+      );
+    });
+    it('should update changed permisions', function() {
+      const oldSchema = deepCopy(defaultSchema.collections);
+      const newSchema = deepCopy(defaultSchema.collections);
+
+      newSchema[0].classLevelPermissions.create['role:user'] = true
+      const newPerms = UpdateCollectionPermissions(
+        newSchema[0].className,
+        deepCopy(newSchema[0].classLevelPermissions)
+      );
+      assert.deepEqual(
+        planCollections(newSchema, oldSchema),
+        [newPerms]
       );
     });
   });

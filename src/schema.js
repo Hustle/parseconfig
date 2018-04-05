@@ -60,6 +60,9 @@ export type TriggerDefinition = {
   url: string
 }
 
+const prettyPrintCollectionPermissions = (cp: CollectionPermissions) => JSON.stringify(cp);
+
 export {
-  triggerTypes
+  triggerTypes,
+  prettyPrintCollectionPermissions
 }
