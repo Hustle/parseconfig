@@ -35,6 +35,7 @@ jspm_packages/
 
 # test output
 .test-compiled
+.integration-test-compiled
 
 # distribution
 dist/

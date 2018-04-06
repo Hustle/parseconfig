@@ -1,7 +1,6 @@
 // @flow
 
 import type {
-  ParseSchemaResponse,
   Schema,
   CollectionDefinition,
   ColumnDefinition,

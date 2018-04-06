@@ -32,13 +32,30 @@ const flatten = <A>(arrs: Array<Array<A>>): Array<A> => {
   return arrs[0].concat(...arrs.slice(1));
 };
 
+const omit = <A>(obj: { [string]: A }, omissions: Array<string>): { [string]: A } => {
+  const out = {};
+  Object.keys(obj).forEach(k => {
+    if (!omissions.includes(k)) {
+      out[k] = obj[k];
+    }
+  });
+  return out;
+};
+
+const autoFields = [
+  'objectId',
+  'ACL',
+  'updatedAt',
+  'createdAt',
+];
+
 const execute = (
   commands: Array<Command>,
   parseUrl: string,
   applicationId: string,
   accessKey: string
-): void => {
-  executeRequests(
+): Promise<*> => {
+  return executeRequests(
     flatten(commands.map(commandToAxiosRequests)),
     parseUrl,
     applicationId,
@@ -51,7 +68,7 @@ const executeRequests = (
   parseUrl: string,
   applicationId: string,
   accessKey: string  
-): void => {
+): Promise<*> => {
 
   const httpClient = axios.create({
     baseURL: parseUrl,
@@ -62,12 +79,14 @@ const executeRequests = (
   });
 
   // Execute requests in order
-  requests.reduce((previous, current) => (
+  return requests.reduce((previous, current) => (
     previous.then(() => {
       console.log('Executing', JSON.stringify(current));
-      httpClient(current);
+      return httpClient(current);
     })
-  ), Promise.resolve());
+  ), Promise.resolve()).catch(e => (
+    console.error(e.message)
+  ));
 };
 
 /**
@@ -80,7 +99,12 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
       return [{
         method: 'post',
         url: `/schemas/${command.definition.className}`,
-        data: command.definition
+        data: {
+          className: command.definition.className,
+          fields: omit(command.definition.fields, autoFields),
+          classLevelPermissions: command.definition.classLevelPermissions,
+          indexes: command.definition.indexes
+        }
       }];
     case DeleteCollection.type:
       return [{
@@ -95,8 +119,7 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
           className: command.collection,
           fields: {
             [command.name]: command.definition
-          },
-          indexes: {}
+          }
         }
       }];
     case DeleteColumn.type:
@@ -107,8 +130,7 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
           className: command.collection,
           fields: {
             [command.columnName]: { __op: 'Delete' }
-          },
-          indexes: {}
+          }
         }
       }];
     case UpdateColumn.type:
@@ -120,8 +142,7 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
             className: command.collection,
             fields: {
               [command.name]: { __op: 'Delete' }
-            },
-            indexes: {}
+            }
           }
         },
         {
@@ -131,8 +152,7 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
             className: command.collection,
             fields: {
               [command.name]: command.definition
-            },
-            indexes: {}
+            }
           }
         }
       ];
@@ -142,7 +162,6 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
         url: `/schemas/${command.collection}`,
         data: {
           className: command.collection,
-          fields: {},
           indexes: {
             [command.name]: command.definition
           }
@@ -154,7 +173,6 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
         url: `/schemas/${command.collection}`,
         data: {
           className: command.collection,
-          fields: {},
           indexes: {
             [command.indexName]: { __op: 'Delete' }
           }
@@ -167,7 +185,6 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
           url: `/schemas/${command.collection}`,
           data: {
             className: command.collection,
-            fields: {},
             indexes: {
               [command.name]: { __op: 'Delete' }
             }
@@ -178,7 +195,6 @@ const commandToAxiosRequests = (command: Command): Array<AxiosXHRConfig<any>> =>
           url: `/schemas/${command.collection}`,
           data: {
             className: command.collection,
-            fields: {},
             indexes: {
               [command.name]: command.definition
             }

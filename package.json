@@ -7,7 +7,8 @@
     "flow-typed-install": "flow-typed install -s -o --ignoreDeps dev",
     "prepublish": "yarn run build",
     "postinstall": "./.hooks/setup-hooks",
-    "test": "yarn run clean; yarn run build; babel test/ -d .test-compiled/; mocha .test-compiled/"
+    "test": "yarn run clean; yarn run build; babel test/ -d .test-compiled/; mocha .test-compiled/",
+    "integration-test": "yarn run clean; yarn run build; babel integration-test/ -d .integration-test-compiled/; mocha .integration-test-compiled/"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

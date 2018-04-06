@@ -1,9 +1,5 @@
 // @flow
 
-export type ParseSchemaResponse = {
-  results: Array<CollectionDefinition>
-}
-
 export type Schema = {
   collections: Array<CollectionDefinition>,
   functions: Array<FunctionDefinition>,

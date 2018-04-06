@@ -96,7 +96,7 @@ const getLiveSchema = async (
     url: '/schemas'
   }).then(response => response.data.results)
     .catch((e) => {
-      console.log('Unable to retrieve collections from Parse.', e);
+      console.error('Unable to retrieve collections from Parse.', e);
       process.exit();
       return Promise.reject(); // satisfy flow
     });
@@ -106,7 +106,7 @@ const getLiveSchema = async (
     url: '/hooks/functions'
   }).then(response => response.data)
     .catch(() => {
-      console.log('Unable to retrieve functions from Parse.');
+      console.error('Unable to retrieve functions from Parse.');
       process.exit();
       return Promise.reject(); // satisfy flow
     });
@@ -116,7 +116,7 @@ const getLiveSchema = async (
     url: '/hooks/triggers'
   }).then(response => response.data)
     .catch(() => {
-      console.log('Unable to retrieve triggers from Parse.');
+      console.error('Unable to retrieve triggers from Parse.');
       process.exit();
       return Promise.reject(); // satisfy flow
     });
@@ -131,4 +131,6 @@ const getLiveSchema = async (
 export {
   getPlan,
   check,
+  execute,
+  getLiveSchema,
 }

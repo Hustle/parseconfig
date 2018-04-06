@@ -9,7 +9,6 @@ import axios from 'axios';
 
 import type { $AxiosXHR } from 'axios';
 import type {
-  ParseSchemaResponse,
   Schema,
   CollectionDefinition,
   FunctionDefinition,
