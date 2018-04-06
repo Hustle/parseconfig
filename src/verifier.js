@@ -56,7 +56,14 @@ const verifyCollectionIndexes = (collection: CollectionDefinition): Array<Valida
   Object.keys(collection.indexes || {}).forEach((indexName) => {
     const indexDef = (collection.indexes || {})[indexName];
     Object.keys(indexDef).forEach((indexCol) => {
-      if (!Object.keys(collection.fields).find((columnName) => columnName === indexCol)) {
+      // columns added automatically by Parse
+      if (['_id', '_updated_at', '_created_at', '_session_token'].includes(indexCol)) {
+        return;
+      }
+      
+      // Properly handle columns that are pointers
+      const trueName = indexCol.replace(/^_p_/, '');
+      if (!Object.keys(collection.fields).find((columnName) => columnName === trueName)) {
         errors.push(invalidIndex(indexName, indexCol));
       }
     });

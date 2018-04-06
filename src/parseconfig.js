@@ -194,8 +194,14 @@ program
   });
 
 const getNewSchema = (schemaFile: string): Schema => {
-  const fileContents = fs.readFileSync(schemaFile, {encoding: 'UTF-8'});
-  return JSON.parse(fileContents);
+  try {
+    const fileContents = fs.readFileSync(schemaFile, {encoding: 'UTF-8'});
+    return JSON.parse(fileContents);
+  } catch (err) {
+    console.error(err.message);
+    process.exit(1);
+    throw err; // Satisfy flow
+  }
 };
 
 const validateOptions = (options: CliOptions): Options => {
