@@ -27,13 +27,23 @@ import type {
   Command
 } from './command';
 
+import type { Options } from './actions';
+
 import { plan } from './planner';
 import { execute } from './executor';
+import { getPlan, check } from './actions';
+import { CliError, MissingParameterError } from './errors';
 
 const PARSE_SERVER_URL = process.env.PARSE_SERVER_URL;
 
 // TODO: consolidate printing of status into a function
 // TODO: support indexes
+export type CliOptions = {
+  applicationId: ?string,
+  key: ?string,
+  hookUrl: ?string,
+  ignoreIndexes: boolean
+}
 
 program.usage('parseconfig [commands]');
 
@@ -47,203 +57,165 @@ program.usage('parseconfig [commands]');
 // --non-interactive: doesn't ask for confirmation before applying gameplan
 // --disallow-column-redefine: returns an error if the definition of a column changes
 // --disallow-index-redefine: returns an error if the definition of an index changes
-type Options = {
-  applicationId: ?string,
-  key: ?string,
-  hookUrl: ?string,
-  ignoreIndexes: boolean
-}
 
 program
-  .command('plan <schema> <parseUrl>')
+  .command('plan <parseUrl> <schema>')
   .description('Generate a gameplan that can be run using the execute command')
   .option('-i, --application-id <s>', 'Application id of the parse server')
   .option('-k, --key <s>', 'Parse access key')
   .option('-u, --hook-url <s>', 'Base url for functions and triggers')
   .option('--ignore-indexes', 'Skips verification and updating of indices')
-  .action(async (schema, parseUrl, options: Options) => {
-    const applicationId: ?string = options.applicationId || process.env.PARSE_APPLICATION_ID;
-    const key: ?string = options.key || process.env.PARSE_MASTER_KEY;
-    const hookUrl: ?string = options.hookUrl || process.env.PARSE_HOOK_URL || null;
-
-    if (applicationId === null || applicationId === undefined) {
-      console.error('Application id must be passed via -i or PARSE_APPLICATION_ID');
-      process.exit(1);
-      throw 'error'; // to make flow happy
-    }
-    if (key === null || key === undefined) {
-      console.error('Parse Master Key must be passed via -k or PARSE_MASTER_KEY');
-      process.exit(1);
-      throw 'error'; // to make flow happy
-    }
-
-    const newSchema = getNewSchema(schema);
-    const oldSchema = await getLiveSchema(parseUrl, applicationId, key);
-    let commands = plan(newSchema, oldSchema, hookUrl);
-    if (options.ignoreIndexes) {
-      commands = commands.filter(c => (
-        c.type !== AddIndex.type
-        && c.type !== UpdateIndex.type
-        && c.type !== DeleteIndex.type
-      ));
-    }
-    console.log(JSON.stringify(commands));
-  });
-
-program
-  .command('apply <schema> <parseUrl>')
-  .description('Apply the given schema to Parse')
-  .option('-i, --application-id <s>', 'Application id of the parse server')
-  .option('-k, --key <s>', 'Parse access key')
-  .option('-u, --hook-url <s>', 'Base url for functions and triggers')
-  .option('--ignore-indexes', 'Skips verification and updating of indices')
-  .action(async (schema, parseUrl, options: Options) => {
-    const applicationId: ?string = options.applicationId || process.env.PARSE_APPLICATION_ID;
-    const key: ?string = options.key || process.env.PARSE_MASTER_KEY;
-    const hookUrl: ?string = options.hookUrl || process.env.PARSE_HOOK_URL || null;
-
-    if (applicationId === null || applicationId === undefined) {
-      console.error('Application id must be passed via -i or PARSE_APPLICATION_ID');
-      process.exit(1);
-      throw 'error'; // to make flow happy
-    }
-    if (key === null || key === undefined) {
-      console.error('Parse Master Key must be passed via -k or PARSE_MASTER_KEY');
-      process.exit(1);
-      throw 'error'; // to make flow happy
-    }
-
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
-
-    const newSchema = getNewSchema(schema);
-    const oldSchema = await getLiveSchema(parseUrl, applicationId, key);
-    let commands = plan(newSchema, oldSchema, hookUrl);
-    if (options.ignoreIndexes) {
-      commands = commands.filter(c => (
-        c.type !== AddIndex.type
-        && c.type !== UpdateIndex.type
-        && c.type !== DeleteIndex.type
-      ));
-    }
-    commands.forEach((command) => console.log(prettyPrintCommand(command)));
-    rl.question('Do you want to execute these commands? [y/N]', (answer) => {
-      if (answer.toLowerCase() !== 'y') {
-        console.log('Exiting without making changes');
-        process.exit();
+  .action(async (parseUrl, schema, cliOptions: CliOptions) => {
+    try {
+      const options = validateOptions(cliOptions);
+      const newSchema = getNewSchema(schema);
+      const gameplan = await getPlan(newSchema, parseUrl, options);
+      console.log(JSON.stringify(gameplan));
+    } catch (e) {
+      if (e instanceof CliError) {
+        console.error(e.message);
+        if (e.shouldExit) {
+          process.exit(e.exitCode);
+        }
       }
-      
-      execute(
-        commands,
-        parseUrl,
-        applicationId,
-        key
-      );
-      rl.close()
-    });
+    }
   });
 
 program
-  .command('check <schema> <parseUrl>')
+  .command('check <parseUrl> <schema>')
   .description('Return an error if Parse is out of sync with the given schema')
   .option('-i, --application-id <s>', 'Application id of the parse server')
   .option('-k, --key <s>', 'Parse access key')
   .option('-u, --hook-url <s>', 'Base url for functions and triggers')
   .option('--ignore-indexes', 'Skips verification and updating of indices')
-  .action(async (schema, parseUrl, options: Options) => {
-    const applicationId: ?string = options.applicationId || process.env.PARSE_APPLICATION_ID;
-    const key: ?string = options.key || process.env.PARSE_MASTER_KEY;
-    const hookUrl: ?string = options.hookUrl || process.env.PARSE_HOOK_URL || null;
-
-    if (applicationId === null || applicationId === undefined) {
-      console.error('Application id must be passed via -i or PARSE_APPLICATION_ID');
-      process.exit(1);
-      throw 'error'; // to make flow happy
-    }
-    if (key === null || key === undefined) {
-      console.error('Parse Master Key must be passed via -k or PARSE_MASTER_KEY');
-      process.exit(1);
-      throw 'error'; // to make flow happy
-    }
-
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
-
-    const newSchema = getNewSchema(schema);
-    const oldSchema = await getLiveSchema(parseUrl, applicationId, key);
-    let commands = plan(newSchema, oldSchema, hookUrl);
-    if (options.ignoreIndexes) {
-      commands = commands.filter(c => (
-        c.type !== AddIndex.type
-        && c.type !== UpdateIndex.type
-        && c.type !== DeleteIndex.type
-      ));
-    }
-    if (commands.length === 0) {
+  .action(async (parseUrl, schema, cliOptions: CliOptions) => {
+    try {
+      const options = validateOptions(cliOptions);
+      const newSchema = getNewSchema(schema);
+      await check(newSchema, parseUrl, options);
       console.error('Parse is up-to-date');
-      process.exit();
+    } catch (e) {
+      if (e instanceof CliError) {
+        console.error(e.message);
+        if (e.shouldExit) {
+          process.exit(e.exitCode);
+        }
+      }
     }
-    console.error('Parse is out of sync with schema, Run plan to see differences');
-    process.exit(1);
-  })
+  });
+
+program
+  .command('apply <parseUrl> <schema>')
+  .description('Apply the given schema to Parse')
+  .option('-i, --application-id <s>', 'Application id of the parse server')
+  .option('-k, --key <s>', 'Parse access key')
+  .option('-u, --hook-url <s>', 'Base url for functions and triggers')
+  .option('--ignore-indexes', 'Skips verification and updating of indices')
+  .action(async (parseUrl, schema, cliOptions: CliOptions) => {
+    try {
+
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+      
+      const options = validateOptions(cliOptions);
+      const newSchema = getNewSchema(schema);
+      const gamePlan = await getPlan(newSchema, parseUrl, options);
+      
+      gamePlan.forEach((command) => console.log(prettyPrintCommand(command)));
+      
+      rl.question('Do you want to execute these commands? [y/N]', (answer) => {
+        if (answer.toLowerCase() !== 'y') {
+          console.error('Exiting without making changes');
+          process.exit();
+        }
+     
+        execute(
+          gamePlan,
+          parseUrl,
+          options.applicationId,
+          options.key
+        );
+        rl.close()
+      })
+    } catch (e) {
+      if (e instanceof CliError) {
+        console.error(e.message);
+        if (e.shouldExit) {
+          process.exit(e.exitCode);
+        }
+      }
+    };
+  });
+
+program
+  .command('execute <parseUrl> <commands>')
+  .description('Execute the given gameplan against Parse')
+  .option('-i, --application-id <s>', 'Application id of the parse server')
+  .option('-k, --key <s>', 'Parse access key')
+  .option('-u, --hook-url <s>', 'Base url for functions and triggers')
+  .option('--ignore-indexes', 'Skips verification and updating of indices')
+  .action(async (parseUrl, commands, cliOptions: CliOptions) => {
+    try {
+
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+
+      const options = validateOptions(cliOptions);
+      const gamePlan = JSON.parse(commands);
+      
+      gamePlan.forEach((command) => console.log(prettyPrintCommand(command)));
+      
+      rl.question('Do you want to execute these commands? [y/N]', (answer) => {
+        if (answer.toLowerCase() !== 'y') {
+          console.error('Exiting without making changes');
+          process.exit();
+        }
+     
+        execute(
+          gamePlan,
+          parseUrl,
+          options.applicationId,
+          options.key
+        );
+        rl.close()
+      })
+    } catch (e) {
+      if (e instanceof CliError) {
+        console.error(e.message);
+        if (e.shouldExit) {
+          process.exit(e.exitCode);
+        }
+      }
+    };
+  });
 
 const getNewSchema = (schemaFile: string): Schema => {
   const fileContents = fs.readFileSync(schemaFile, {encoding: 'UTF-8'});
   return JSON.parse(fileContents);
 };
 
-const getLiveSchema = async (
-  parseUrl: string,
-  applicationId: string,
-  key: string
-): Promise<Schema> => {
+const validateOptions = (options: CliOptions): Options => {
+  const applicationId: ?string = options.applicationId || process.env.PARSE_APPLICATION_ID;
+  const key: ?string = options.key || process.env.PARSE_MASTER_KEY;
+  const hookUrl: ?string = options.hookUrl || process.env.PARSE_HOOK_URL || null;
+  const ignoreIndexes = options.ignoreIndexes;
 
-  const httpClient = axios.create({
-    baseURL: parseUrl,
-    headers: {
-      ['X-Parse-Application-Id']: applicationId,
-      ['X-Parse-Master-Key']: key
-    }
-  });
-  
-  const collections = await httpClient({
-    method: 'get',
-    url: '/schemas'
-  }).then(response => response.data.results)
-    .catch((e) => {
-      console.log('Unable to retrieve collections from Parse.', e);
-      process.exit();
-      return Promise.reject(); // satisfy flow
-    });
-  
-  const functions = await httpClient({
-    method: 'get',
-    url: '/hooks/functions'
-  }).then(response => response.data)
-    .catch(() => {
-      console.log('Unable to retrieve functions from Parse.');
-      process.exit();
-      return Promise.reject(); // satisfy flow
-    });
-  
-  const triggers = await httpClient({
-    method: 'get',
-    url: '/hooks/triggers'
-  }).then(response => response.data)
-    .catch(() => {
-      console.log('Unable to retrieve triggers from Parse.');
-      process.exit();
-      return Promise.reject(); // satisfy flow
-    });
-
+  if (applicationId === null || applicationId === undefined) {
+    throw new MissingParameterError('Application id', '-i', 'PARSE_APPLICATION_ID');
+  }
+  if (key === null || key === undefined) {
+    throw new MissingParameterError('Parse Master Key', '-k', 'PARSE_MASTER_KEY');
+  }
   return {
-    collections,
-    functions,
-    triggers,
+    applicationId,
+    key,
+    hookUrl,
+    ignoreIndexes
   };
 };
+
 program.parse(process.argv);
