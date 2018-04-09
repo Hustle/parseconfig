@@ -32,6 +32,7 @@ import { plan } from './planner';
 import { execute } from './executor';
 import { getPlan, check } from './actions';
 import { CliError, MissingParameterError } from './errors';
+import { consoleLogger } from './logger';
 
 const PARSE_SERVER_URL = process.env.PARSE_SERVER_URL;
 
@@ -84,7 +85,7 @@ program
     try {
       const options = validateOptions(cliOptions);
       const newSchema = getNewSchema(schema);
-      const gamePlan = await getPlan(newSchema, parseUrl, options);
+      const gamePlan = await getPlan(newSchema, parseUrl, options, consoleLogger);
       console.log(JSON.stringify(gamePlan));
     } catch (e) {
       handleError(e);
@@ -102,7 +103,7 @@ program
     try {
       const options = validateOptions(cliOptions);
       const newSchema = getNewSchema(schema);
-      await check(newSchema, parseUrl, options);
+      await check(newSchema, parseUrl, options, consoleLogger);
       console.error('Parse is up-to-date');
     } catch (e) {
       handleError(e);
@@ -129,7 +130,7 @@ program
       
       const options = validateOptions(cliOptions);
       const newSchema = getNewSchema(schema);
-      const gamePlan = await getPlan(newSchema, parseUrl, options);
+      const gamePlan = await getPlan(newSchema, parseUrl, options, consoleLogger);
       
       gamePlan.forEach((command) => console.log(prettyPrintCommand(command)));
 
@@ -138,7 +139,8 @@ program
           gamePlan,
           parseUrl,
           options.applicationId,
-          options.key
+          options.key,
+          consoleLogger
         );
       } else {
         rl.question('Do you want to execute these commands? [y/N]', (answer) => {
@@ -187,7 +189,8 @@ program
           gamePlan,
           parseUrl,
           options.applicationId,
-          options.key
+          options.key,
+          consoleLogger
         );
       } else {
         rl.question('Do you want to execute these commands? [y/N]', (answer) => {

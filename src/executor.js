@@ -25,6 +25,8 @@ import type {
   Command
 } from './command';
 
+import type { Logger } from './logger';
+
 const flatten = <A>(arrs: Array<Array<A>>): Array<A> => {
   if (arrs.length === 0) {
     return [];
@@ -53,13 +55,15 @@ const execute = (
   commands: Array<Command>,
   parseUrl: string,
   applicationId: string,
-  accessKey: string
+  accessKey: string,
+  logger: Logger
 ): Promise<*> => {
   return executeRequests(
     flatten(commands.map(commandToAxiosRequests)),
     parseUrl,
     applicationId,
-    accessKey
+    accessKey,
+    logger
   );
 };
 
@@ -67,7 +71,8 @@ const executeRequests = (
   requests: Array<AxiosXHRConfig<any>>,
   parseUrl: string,
   applicationId: string,
-  accessKey: string  
+  accessKey: string,
+  logger: Logger
 ): Promise<*> => {
 
   const httpClient = axios.create({
@@ -81,7 +86,7 @@ const executeRequests = (
   // Execute requests in order
   return requests.reduce((previous, current) => (
     previous.then(() => {
-      console.log('Executing', JSON.stringify(current));
+      logger.info('Executing', JSON.stringify(current));
       return httpClient(current);
     })
   ), Promise.resolve()).catch(e => (

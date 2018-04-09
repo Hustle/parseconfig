@@ -1,6 +1,7 @@
 import assert from 'assert';
 
 import { getPlan, execute, getLiveSchema } from '../dist/actions';
+import { voidLogger } from '../dist/logger';
 
 const deepCopy = (any) => JSON.parse(JSON.stringify(any));
 
@@ -114,12 +115,13 @@ const options = {
 }
 
 const apply =  async (newSchema) => {
-  const gamePlan = await getPlan(newSchema, parseUrl, options);
+  const gamePlan = await getPlan(newSchema, parseUrl, options, voidLogger);
   return execute(
     gamePlan,
     parseUrl,
     options.applicationId,
-    options.key
+    options.key,
+    voidLogger
   );
 };
 
