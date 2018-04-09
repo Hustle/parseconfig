@@ -14,8 +14,8 @@ const duplicateClass = (collection: CollectionDefinition): ValidationError => (
   `Duplicate definitions for class ${collection.className}`
 );
 
-const invalidIndex = (indexName: string, fieldName: string): ValidationError => (
-  `Invalid index: ${indexName} includes non-existent column "${fieldName}"`
+const invalidIndex = (indexName: string, fieldName: string, collectionName: string): ValidationError => (
+  `Invalid index: ${indexName} on collection ${collectionName} includes non-existent column "${fieldName}"`
 );
 
 const duplicateIndex = (index: string, className: string): ValidationError => (
