@@ -3,3 +3,4 @@ set -euo pipefail
 
 yarn run flow
 yarn test
+./integration-tests

@@ -21,6 +21,7 @@ import {
   InvalidSchemaError,
   DisallowedCommandError,
 } from './errors';
+import type { Logger } from './logger';
 
 export type Options = {
   applicationId: string,
@@ -31,7 +32,12 @@ export type Options = {
   disallowIndexRedefine: boolean
 }
 
-const getPlan = async (newSchema: Schema, parseUrl: string, options: Options) => {
+const getPlan = async (
+  newSchema: Schema,
+  parseUrl: string,
+  options: Options,
+  logger: Logger,
+) => {
   const applicationId = options.applicationId;
   const key = options.key;
   const hookUrl = options.hookUrl;
@@ -40,7 +46,7 @@ const getPlan = async (newSchema: Schema, parseUrl: string, options: Options) =>
   if (validationErrors.length > 0) {
     throw new InvalidSchemaError(validationErrors);
   }
-  const oldSchema = await getLiveSchema(parseUrl, applicationId, key);
+  const oldSchema = await getLiveSchema(parseUrl, applicationId, key, logger);
   let commands = plan(newSchema, oldSchema, hookUrl);
   if (options.ignoreIndexes) {
     commands = commands.filter(c => (
@@ -68,8 +74,13 @@ const getPlan = async (newSchema: Schema, parseUrl: string, options: Options) =>
   return commands;
 };
 
-const check = async (newSchema: Schema, parseUrl: string, options: Options) => {
-  const commands = getPlan(newSchema, parseUrl, options)
+const check = async (
+  newSchema: Schema,
+  parseUrl: string,
+  options: Options,
+  logger: Logger
+) => {
+  const commands = getPlan(newSchema, parseUrl, options, logger)
   
   if (commands.length === 0) {
     return;
@@ -80,7 +91,8 @@ const check = async (newSchema: Schema, parseUrl: string, options: Options) => {
 const getLiveSchema = async (
   parseUrl: string,
   applicationId: string,
-  key: string
+  key: string,
+  logger: Logger,
 ): Promise<Schema> => {
 
   const httpClient = axios.create({
@@ -96,7 +108,7 @@ const getLiveSchema = async (
     url: '/schemas'
   }).then(response => response.data.results)
     .catch((e) => {
-      console.log('Unable to retrieve collections from Parse.', e);
+      logger.error('Unable to retrieve collections from Parse.', e);
       process.exit();
       return Promise.reject(); // satisfy flow
     });
@@ -106,7 +118,7 @@ const getLiveSchema = async (
     url: '/hooks/functions'
   }).then(response => response.data)
     .catch(() => {
-      console.log('Unable to retrieve functions from Parse.');
+      logger.error('Unable to retrieve functions from Parse.');
       process.exit();
       return Promise.reject(); // satisfy flow
     });
@@ -116,7 +128,7 @@ const getLiveSchema = async (
     url: '/hooks/triggers'
   }).then(response => response.data)
     .catch(() => {
-      console.log('Unable to retrieve triggers from Parse.');
+      logger.error('Unable to retrieve triggers from Parse.');
       process.exit();
       return Promise.reject(); // satisfy flow
     });
@@ -131,4 +143,6 @@ const getLiveSchema = async (
 export {
   getPlan,
   check,
+  execute,
+  getLiveSchema,
 }

@@ -1,7 +1,6 @@
 // @flow
 
 import type {
-  ParseSchemaResponse,
   Schema,
   CollectionDefinition,
   FunctionDefinition,
@@ -200,14 +199,15 @@ const planFunctions = (
   const newFunctions = (() => {
     const newFuncs = [];
     newSchema.forEach(func => {
+      const actualFunc = Object.assign({}, func);
       if (hookUrl) {
-        func.url = hookUrl + func.url;
+        actualFunc.url = hookUrl + func.url;
       }
-      const oldFunc = oldFuncMap.get(func.functionName);
+      const oldFunc = oldFuncMap.get(actualFunc.functionName);
       if (oldFunc === undefined) {
-        newFuncs.push(AddFunction(func));
-      } else if (oldFunc.url !== func.url) {
-        newFuncs.push(UpdateFunction(func));
+        newFuncs.push(AddFunction(actualFunc));
+      } else if (oldFunc.url !== actualFunc.url) {
+        newFuncs.push(UpdateFunction(actualFunc));
       }
     });
     return newFuncs;
@@ -240,14 +240,15 @@ const planTriggers = (
   const newTriggers = (() => {
     const newTriggers = [];
     newSchema.forEach(trigger => {
+      const actualTrigger = Object.assign({}, trigger);
       if (hookUrl) {
-        trigger.url = hookUrl + trigger.url;
+        actualTrigger.url = hookUrl + trigger.url;
       }
-      const oldTrigger = oldTriggerMap.get(triggerKey(trigger));
+      const oldTrigger = oldTriggerMap.get(triggerKey(actualTrigger));
       if (oldTrigger === undefined) {
-        newTriggers.push(AddTrigger(trigger));
-      } else if (oldTrigger.url !== trigger.url) {
-        newTriggers.push(UpdateTrigger(trigger));
+        newTriggers.push(AddTrigger(actualTrigger));
+      } else if (oldTrigger.url !== actualTrigger.url) {
+        newTriggers.push(UpdateTrigger(actualTrigger));
       }
     });
     return newTriggers;
