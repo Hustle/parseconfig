@@ -41,6 +41,10 @@ const duplicateFunction = (func: FunctionDefinition): ValidationError => (
   `Duplicate definitions for function ${func.functionName}`
 );
 
+const invalidPermission = (permName: string, className: string): ValidationError => (
+  `Invalid permission ${permName} on collection ${className}; permission values must be \`true\``
+);
+
 const prettyPrintValidationError = (error: ValidationError): string => error;
 
 export {
@@ -52,5 +56,6 @@ export {
   invalidTriggerName,
   invalidTriggerClass,
   duplicateFunction,
+  invalidPermission,
   prettyPrintValidationError
 }

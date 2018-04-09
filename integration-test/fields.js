@@ -28,11 +28,6 @@ const defaultSchema = {
           type: 'String'
         }
       },
-      indexes: {
-        AAA_index: {
-          AAA: 1
-        }
-      },
       classLevelPermissions: {
         find: {
           ['role:user']: true
@@ -131,12 +126,14 @@ const getSchema = async () => getLiveSchema(
 
 const reset = async () => apply(emptySchema);
 
-describe('class level permissions', () => {
+describe('fields', () => {
   it('should be added correctly', async () => {
     const oldSchema = deepCopy(defaultSchema);
     const newSchema = deepCopy(defaultSchema);
 
-    newSchema.collections[0].classLevelPermissions.create['role:user'] = true
+    newSchema.collections[0].fields.BBA = {
+      type: 'Date'
+    }
 
     await reset();
     const s1 = await getSchema();
@@ -154,8 +151,7 @@ describe('class level permissions', () => {
     const oldSchema = deepCopy(defaultSchema);
     const newSchema = deepCopy(defaultSchema);
 
-    oldSchema.collections[0].classLevelPermissions.create['role:user'] = true
-    oldSchema.collections[0].classLevelPermissions.find['role:user'] = true
+    delete newSchema.collections[0].fields.AAA;
 
     await reset();
     const s1 = await getSchema();

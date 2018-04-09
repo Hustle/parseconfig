@@ -11,6 +11,7 @@ import {
   invalidTriggerName,
   invalidTriggerClass,
   duplicateFunction,
+  invalidPermission,
 } from '../dist/validation-error';
 
 const deepCopy = (any) => JSON.parse(JSON.stringify(any));
@@ -32,6 +33,16 @@ describe('verifier', function() {
           AAA_index: {
             AAA: 1
           }
+        },
+        classLevelPermissions: {
+          find: {
+            ['role:user']: true
+          },
+          get: {},
+          create: {},
+          update: {},
+          delete: {},
+          addField: {}
         }
       },
       {
@@ -89,6 +100,15 @@ describe('verifier', function() {
       assert.deepEqual(
         verifySchema(schema),
         [invalidIndex(Object.keys(schema.collections[0].indexes)[0], 'AAA', 'Foo')]
+      );
+    });
+    it('should error on invalid permissions', function() {
+      const schema = deepCopy(defaultSchema);
+      schema.collections[0].classLevelPermissions.create['role:admin'] = false;
+
+      assert.deepEqual(
+        verifySchema(schema),
+        [invalidPermission('create',  schema.collections[0].className)]
       );
     });
     it('should error on duplicate indices', function() {

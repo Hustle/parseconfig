@@ -23,6 +23,7 @@ import {
   duplicateTrigger,
   invalidTriggerName,
   invalidTriggerClass,
+  invalidPermission,
   duplicateFunction,
 } from './validation-error';
 
@@ -42,6 +43,7 @@ const verifyCollections = (collections: Array<CollectionDefinition>): Array<Vali
     errors.push(...verifyCollectionIndexes(coll));
     errors.push(...verifyIndexUniqueness(coll));
     errors.push(...verifyColumnUniqueness(coll));
+    errors.push(...verifyPermissions(coll));
     if (names.has(coll.className)) {
       errors.push(duplicateClass(coll));
     } else {
@@ -65,6 +67,19 @@ const verifyCollectionIndexes = (collection: CollectionDefinition): Array<Valida
       const trueName = indexCol.replace(/^_p_/, '');
       if (!Object.keys(collection.fields).find((columnName) => columnName === trueName)) {
         errors.push(invalidIndex(indexName, indexCol, collection.className));
+      }
+    });
+  });
+  return errors;
+};
+
+const verifyPermissions = (collection: CollectionDefinition): Array<ValidationError> => {
+  const errors = [];
+  const names = new Set();
+  Object.entries(collection.classLevelPermissions || {}).forEach(([name, perm]) => {
+    Object.values(perm).forEach(v => {
+      if (v !== true) {
+        errors.push(invalidPermission(name, collection.className));
       }
     });
   });
