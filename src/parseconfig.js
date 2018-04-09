@@ -47,6 +47,18 @@ export type CliOptions = {
 
 program.usage('parseconfig [commands]');
 
+function handleError(e) {
+  if (e instanceof CliError) {
+    console.error(e.message);
+    if (e.shouldExit) {
+      process.exit(e.exitCode);
+    }
+  } else {
+    console.error('Unexpected error:', e);
+    process.exit(2);
+  }
+}
+
 // commands:
 // plan: outputs a gameplan in JSON format that can be executed
 // --disallow-column-redefine: returns an error if the definition of a column changes
@@ -72,12 +84,7 @@ program
       const gameplan = await getPlan(newSchema, parseUrl, options);
       console.log(JSON.stringify(gameplan));
     } catch (e) {
-      if (e instanceof CliError) {
-        console.error(e.message);
-        if (e.shouldExit) {
-          process.exit(e.exitCode);
-        }
-      }
+      handleError(e);
     }
   });
 
@@ -95,12 +102,7 @@ program
       await check(newSchema, parseUrl, options);
       console.error('Parse is up-to-date');
     } catch (e) {
-      if (e instanceof CliError) {
-        console.error(e.message);
-        if (e.shouldExit) {
-          process.exit(e.exitCode);
-        }
-      }
+      handleError(e);
     }
   });
 
@@ -140,12 +142,7 @@ program
         rl.close()
       })
     } catch (e) {
-      if (e instanceof CliError) {
-        console.error(e.message);
-        if (e.shouldExit) {
-          process.exit(e.exitCode);
-        }
-      }
+      handleError(e);
     };
   });
 
@@ -184,12 +181,7 @@ program
         rl.close()
       })
     } catch (e) {
-      if (e instanceof CliError) {
-        console.error(e.message);
-        if (e.shouldExit) {
-          process.exit(e.exitCode);
-        }
-      }
+      handleError(e);
     };
   });
 

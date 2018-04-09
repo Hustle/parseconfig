@@ -60,11 +60,11 @@ const verifyCollectionIndexes = (collection: CollectionDefinition): Array<Valida
       if (['_id', '_updated_at', '_created_at', '_session_token'].includes(indexCol)) {
         return;
       }
-      
+
       // Properly handle columns that are pointers
       const trueName = indexCol.replace(/^_p_/, '');
       if (!Object.keys(collection.fields).find((columnName) => columnName === trueName)) {
-        errors.push(invalidIndex(indexName, indexCol));
+        errors.push(invalidIndex(indexName, indexCol, collection.className));
       }
     });
   });

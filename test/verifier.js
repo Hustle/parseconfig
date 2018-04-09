@@ -88,7 +88,7 @@ describe('verifier', function() {
 
       assert.deepEqual(
         verifySchema(schema),
-        [invalidIndex(Object.keys(schema.collections[0].indexes)[0], 'AAA')]
+        [invalidIndex(Object.keys(schema.collections[0].indexes)[0], 'AAA', 'Foo')]
       );
     });
     it('should error on duplicate indices', function() {
