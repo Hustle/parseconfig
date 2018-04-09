@@ -1,6 +1,7 @@
 import assert from 'assert';
 
 import { reset, getSchema, apply, emptySchema } from './util';
+import { consoleLogger } from '../dist/logger';
 
 const deepCopy = (any) => JSON.parse(JSON.stringify(any));
 
@@ -31,6 +32,9 @@ const defaultSchema = {
       indexes: {
         AAA_index: {
           AAA: 1
+        },
+        AAB_index: {
+          AAB: 1
         }
       },
       classLevelPermissions: {
@@ -89,23 +93,18 @@ const defaultSchema = {
   triggers: [
     {
       className: 'Foo',
-      triggerName: 'beforeSave',
-      url: '/foo/beforeSave'
-    },
-    {
-      className: 'Bar',
       triggerName: 'afterSave',
-      url: '/bar/afterSave'
+      url: '/foo/afterSave'
     }
   ]
 };
 
-describe('class level permissions', () => {
+describe('collections', () => {
   it('should be added correctly', async () => {
     const oldSchema = deepCopy(defaultSchema);
     const newSchema = deepCopy(defaultSchema);
 
-    newSchema.collections[0].classLevelPermissions.create['role:user'] = true
+    oldSchema.collections = oldSchema.collections.slice(0, 1);
 
     await reset();
     const s1 = await getSchema();
@@ -123,27 +122,7 @@ describe('class level permissions', () => {
     const oldSchema = deepCopy(defaultSchema);
     const newSchema = deepCopy(defaultSchema);
 
-    oldSchema.collections[0].classLevelPermissions.create['role:user'] = true
-    oldSchema.collections[0].classLevelPermissions.find['role:user'] = true
-
-    await reset();
-    const s1 = await getSchema();
-    assert.deepEqual(s1, emptySchema);
-
-    await apply(oldSchema);
-    const s2 = await getSchema();
-    assert.deepEqual(s2, oldSchema);
-
-    await apply(newSchema);
-    const s3 = await getSchema();
-    assert.deepEqual(s3, newSchema);
-  });
-  it('should be updated correctly', async () => {
-    const oldSchema = deepCopy(defaultSchema);
-    const newSchema = deepCopy(defaultSchema);
-
-    delete newSchema.collections[0].classLevelPermissions.find['role:user'];
-    newSchema.collections[0].classLevelPermissions.find['role:admin'] = true;
+    newSchema.collections = newSchema.collections.slice(0, 1);
 
     await reset();
     const s1 = await getSchema();

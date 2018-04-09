@@ -1,7 +1,6 @@
 import assert from 'assert';
 
-import { getPlan, execute, getLiveSchema } from '../dist/actions';
-import { voidLogger } from '../dist/logger';
+import { reset, getSchema, apply, emptySchema } from './util';
 
 const deepCopy = (any) => JSON.parse(JSON.stringify(any));
 
@@ -95,38 +94,6 @@ const defaultSchema = {
     }
   ]
 };
-const emptySchema = {
-  collections: [],
-  functions: [],
-  triggers: []
-};
-
-const parseUrl = 'http://localhost:7345/1';
-const options = {
-  applicationId: 'the_application_id',
-  key: 'the_master_key',
-  hookUrl: null,
-  skipIndexes: false
-}
-
-const apply =  async (newSchema) => {
-  const gamePlan = await getPlan(newSchema, parseUrl, options, voidLogger);
-  return execute(
-    gamePlan,
-    parseUrl,
-    options.applicationId,
-    options.key,
-    voidLogger
-  );
-};
-
-const getSchema = async () => getLiveSchema(
-  parseUrl,
-  options.applicationId,
-  options.key
-);
-
-const reset = async () => apply(emptySchema);
 
 describe('fields', () => {
   it('should be added correctly', async () => {
@@ -154,6 +121,24 @@ describe('fields', () => {
     const newSchema = deepCopy(defaultSchema);
 
     delete newSchema.collections[0].fields.AAA;
+
+    await reset();
+    const s1 = await getSchema();
+    assert.deepEqual(s1, emptySchema);
+
+    await apply(oldSchema);
+    const s2 = await getSchema();
+    assert.deepEqual(s2, oldSchema);
+
+    await apply(newSchema);
+    const s3 = await getSchema();
+    assert.deepEqual(s3, newSchema);
+  });
+  it('should be updated correctly', async () => {
+    const oldSchema = deepCopy(defaultSchema);
+    const newSchema = deepCopy(defaultSchema);
+
+    newSchema.collections[0].fields.AAA.type = 'Date';
 
     await reset();
     const s1 = await getSchema();

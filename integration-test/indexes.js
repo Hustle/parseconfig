@@ -1,6 +1,7 @@
 import assert from 'assert';
 
 import { reset, getSchema, apply, emptySchema } from './util';
+import { consoleLogger } from '../dist/logger';
 
 const deepCopy = (any) => JSON.parse(JSON.stringify(any));
 
@@ -31,6 +32,9 @@ const defaultSchema = {
       indexes: {
         AAA_index: {
           AAA: 1
+        },
+        AAB_index: {
+          AAB: 1
         }
       },
       classLevelPermissions: {
@@ -100,12 +104,15 @@ const defaultSchema = {
   ]
 };
 
-describe('class level permissions', () => {
+describe('indices', () => {
   it('should be added correctly', async () => {
     const oldSchema = deepCopy(defaultSchema);
     const newSchema = deepCopy(defaultSchema);
 
-    newSchema.collections[0].classLevelPermissions.create['role:user'] = true
+    newSchema.collections[0].indexes.Index_Two = {
+      AAB: 1,
+      AAA: 1
+    };
 
     await reset();
     const s1 = await getSchema();
@@ -123,8 +130,7 @@ describe('class level permissions', () => {
     const oldSchema = deepCopy(defaultSchema);
     const newSchema = deepCopy(defaultSchema);
 
-    oldSchema.collections[0].classLevelPermissions.create['role:user'] = true
-    oldSchema.collections[0].classLevelPermissions.find['role:user'] = true
+    delete newSchema.collections[0].indexes.AAB_index;
 
     await reset();
     const s1 = await getSchema();
@@ -142,8 +148,7 @@ describe('class level permissions', () => {
     const oldSchema = deepCopy(defaultSchema);
     const newSchema = deepCopy(defaultSchema);
 
-    delete newSchema.collections[0].classLevelPermissions.find['role:user'];
-    newSchema.collections[0].classLevelPermissions.find['role:admin'] = true;
+    newSchema.collections[0].indexes.AAA_index.AAB = 1;
 
     await reset();
     const s1 = await getSchema();

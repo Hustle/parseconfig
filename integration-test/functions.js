@@ -1,6 +1,7 @@
 import assert from 'assert';
 
 import { reset, getSchema, apply, emptySchema } from './util';
+import { consoleLogger } from '../dist/logger';
 
 const deepCopy = (any) => JSON.parse(JSON.stringify(any));
 
@@ -31,6 +32,9 @@ const defaultSchema = {
       indexes: {
         AAA_index: {
           AAA: 1
+        },
+        AAB_index: {
+          AAB: 1
         }
       },
       classLevelPermissions: {
@@ -100,12 +104,15 @@ const defaultSchema = {
   ]
 };
 
-describe('class level permissions', () => {
+describe('functions', () => {
   it('should be added correctly', async () => {
     const oldSchema = deepCopy(defaultSchema);
     const newSchema = deepCopy(defaultSchema);
 
-    newSchema.collections[0].classLevelPermissions.create['role:user'] = true
+    newSchema.functions.push({
+      functionName: 'launchMissiles',
+      url: '/launchMissiles'
+    });
 
     await reset();
     const s1 = await getSchema();
@@ -123,8 +130,7 @@ describe('class level permissions', () => {
     const oldSchema = deepCopy(defaultSchema);
     const newSchema = deepCopy(defaultSchema);
 
-    oldSchema.collections[0].classLevelPermissions.create['role:user'] = true
-    oldSchema.collections[0].classLevelPermissions.find['role:user'] = true
+    newSchema.functions = newSchema.functions.slice(0, 1);
 
     await reset();
     const s1 = await getSchema();
@@ -142,8 +148,7 @@ describe('class level permissions', () => {
     const oldSchema = deepCopy(defaultSchema);
     const newSchema = deepCopy(defaultSchema);
 
-    delete newSchema.collections[0].classLevelPermissions.find['role:user'];
-    newSchema.collections[0].classLevelPermissions.find['role:admin'] = true;
+    newSchema.functions[0].url = '/smoosh';
 
     await reset();
     const s1 = await getSchema();
@@ -156,5 +161,88 @@ describe('class level permissions', () => {
     await apply(newSchema);
     const s3 = await getSchema();
     assert.deepEqual(s3, newSchema);
+  });
+  describe('with hookUrl', () => {
+    it('should be added correctly', async () => {
+      const oldSchema = deepCopy(defaultSchema);
+      const newSchema = deepCopy(defaultSchema);
+
+      newSchema.functions.push({
+        functionName: 'launchMissiles',
+        url: '/launchMissiles'
+      });
+
+      await reset();
+      const s1 = await getSchema();
+      assert.deepEqual(s1, emptySchema);
+
+      await apply(oldSchema, { hookUrl: '/the-hooks' });
+      const s2 = await getSchema();
+      const oldFuncs = oldSchema.functions.map(f => ({
+        functionName: f.functionName,
+        url: '/the-hooks' + f.url
+      }));
+      assert.deepEqual(s2.functions, oldFuncs);
+
+      await apply(newSchema, { hookUrl: '/the-hooks' });
+      const s3 = await getSchema();
+      const newFuncs = newSchema.functions.map(f => ({
+        functionName: f.functionName,
+        url: '/the-hooks' + f.url
+      }));
+      assert.deepEqual(s3.functions, newFuncs);
+    });
+    it('should be removed correctly', async () => {
+      const oldSchema = deepCopy(defaultSchema);
+      const newSchema = deepCopy(defaultSchema);
+
+      newSchema.functions = newSchema.functions.slice(0, 1);
+
+      await reset();
+      const s1 = await getSchema();
+      assert.deepEqual(s1, emptySchema);
+
+      await apply(oldSchema, { hookUrl: '/the-hooks' });
+      const s2 = await getSchema();
+      const oldFuncs = oldSchema.functions.map(f => ({
+        functionName: f.functionName,
+        url: '/the-hooks' + f.url
+      }));
+      assert.deepEqual(s2.functions, oldFuncs);
+
+      await apply(newSchema, { hookUrl: '/the-hooks' });
+      const s3 = await getSchema();
+      const newFuncs = newSchema.functions.map(f => ({
+        functionName: f.functionName,
+        url: '/the-hooks' + f.url
+      }));
+      assert.deepEqual(s3.functions, newFuncs);
+    });
+    it('should be updated correctly', async () => {
+      const oldSchema = deepCopy(defaultSchema);
+      const newSchema = deepCopy(defaultSchema);
+
+      newSchema.functions[0].url = '/smoosh';
+
+      await reset();
+      const s1 = await getSchema();
+      assert.deepEqual(s1, emptySchema);
+
+      await apply(oldSchema, { hookUrl: '/the-hooks' });
+      const s2 = await getSchema();
+      const oldFuncs = oldSchema.functions.map(f => ({
+        functionName: f.functionName,
+        url: '/the-hooks' + f.url
+      }));
+      assert.deepEqual(s2.functions, oldFuncs);
+
+      await apply(newSchema, { hookUrl: '/the-hooks' });
+      const s3 = await getSchema();
+      const newFuncs = newSchema.functions.map(f => ({
+        functionName: f.functionName,
+        url: '/the-hooks' + f.url
+      }));
+      assert.deepEqual(s3.functions, newFuncs);
+    });
   });
 });
