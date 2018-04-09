@@ -2,6 +2,8 @@
 
 import type { ValidationError } from './validation-error';
 import { prettyPrintValidationError } from './validation-error';
+import type { Command } from './command';
+import { prettyPrintCommand } from './command';
 
 class CliError extends Error {
   
@@ -68,9 +70,26 @@ class InvalidSchemaError extends CliError {
   }
 }
 
+class DisallowedCommandError extends CliError {
+  
+  command: Command
+  
+  constructor(command: Command, ...params: any) {
+    const msg = `Schema would cause disallowed command: "${prettyPrintCommand(command)}"`;
+    super(1, true, msg, ...params);
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, DisallowedCommandError);
+    }
+
+    this.command = command;
+  }
+}
+
 export {
   CliError,
   MissingParameterError,
   OutOfSyncError,
   InvalidSchemaError,
+  DisallowedCommandError,
 }

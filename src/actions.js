@@ -8,6 +8,8 @@ import {
   AddIndex,
   UpdateIndex,
   DeleteIndex,
+  UpdateColumn,
+  DeleteColumn,
   prettyPrintCommand,
 } from './command';
 
@@ -17,13 +19,16 @@ import { verifySchema } from './verifier';
 import {
   OutOfSyncError,
   InvalidSchemaError,
+  DisallowedCommandError,
 } from './errors';
 
 export type Options = {
   applicationId: string,
   key: string,
   hookUrl: ?string,
-  ignoreIndexes: boolean
+  ignoreIndexes: boolean,
+  disallowColumnRedefine: boolean,
+  disallowIndexRedefine: boolean
 }
 
 const getPlan = async (newSchema: Schema, parseUrl: string, options: Options) => {
@@ -43,6 +48,22 @@ const getPlan = async (newSchema: Schema, parseUrl: string, options: Options) =>
         && c.type !== UpdateIndex.type
         && c.type !== DeleteIndex.type
     ));
+  }
+  if (options.disallowColumnRedefine) {
+    commands.forEach(c => {
+      if (c.type !== UpdateColumn.type
+          || c.type !== DeleteColumn.type) {
+        throw new DisallowedCommandError(c);
+      }
+    });
+  }
+  if (options.disallowIndexRedefine) {
+    commands.forEach(c => {
+      if (c.type !== UpdateIndex.type
+          || c.type !== DeleteIndex.type) {
+        throw new DisallowedCommandError(c);
+      }
+    });
   }
   return commands;
 };

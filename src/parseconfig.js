@@ -42,7 +42,9 @@ export type CliOptions = {
   applicationId: ?string,
   key: ?string,
   hookUrl: ?string,
-  ignoreIndexes: boolean
+  ignoreIndexes: boolean,
+  disallowColumnRedefine: boolean,
+  disallowIndexRedefine: boolean
 }
 
 program.usage('parseconfig [commands]');
@@ -77,12 +79,14 @@ program
   .option('-k, --key <s>', 'Parse access key')
   .option('-u, --hook-url <s>', 'Base url for functions and triggers')
   .option('--ignore-indexes', 'Skips verification and updating of indices')
+  .option('--disallow-column-redefine', 'Prevents columns from being updated or deleted')
+  .option('--disallow-index-redefine', 'Prevents indices from being updated or deleted')
   .action(async (parseUrl, schema, cliOptions: CliOptions) => {
     try {
       const options = validateOptions(cliOptions);
       const newSchema = getNewSchema(schema);
-      const gameplan = await getPlan(newSchema, parseUrl, options);
-      console.log(JSON.stringify(gameplan));
+      const gamePlan = await getPlan(newSchema, parseUrl, options);
+      console.log(JSON.stringify(gamePlan));
     } catch (e) {
       handleError(e);
     }
@@ -112,7 +116,10 @@ program
   .option('-i, --application-id <s>', 'Application id of the parse server')
   .option('-k, --key <s>', 'Parse access key')
   .option('-u, --hook-url <s>', 'Base url for functions and triggers')
+  .option('--non-interactive', 'Do not ask for confirmation before applying changes')
   .option('--ignore-indexes', 'Skips verification and updating of indices')
+  .option('--disallow-column-redefine', 'Prevents columns from being updated or deleted')
+  .option('--disallow-index-redefine', 'Prevents indices from being updated or deleted')
   .action(async (parseUrl, schema, cliOptions: CliOptions) => {
     try {
 
@@ -126,21 +133,30 @@ program
       const gamePlan = await getPlan(newSchema, parseUrl, options);
       
       gamePlan.forEach((command) => console.log(prettyPrintCommand(command)));
-      
-      rl.question('Do you want to execute these commands? [y/N]', (answer) => {
-        if (answer.toLowerCase() !== 'y') {
-          console.error('Exiting without making changes');
-          process.exit();
-        }
-     
+
+      if (cliOptions.nonInteractive) {
         execute(
           gamePlan,
           parseUrl,
           options.applicationId,
           options.key
         );
-        rl.close()
-      })
+      } else {
+        rl.question('Do you want to execute these commands? [y/N]', (answer) => {
+          if (answer.toLowerCase() !== 'y') {
+            console.error('Exiting without making changes');
+            process.exit();
+          }
+          
+          execute(
+            gamePlan,
+            parseUrl,
+            options.applicationId,
+            options.key
+          );
+          rl.close()
+        });
+      }
     } catch (e) {
       handleError(e);
     };
@@ -152,6 +168,7 @@ program
   .option('-i, --application-id <s>', 'Application id of the parse server')
   .option('-k, --key <s>', 'Parse access key')
   .option('-u, --hook-url <s>', 'Base url for functions and triggers')
+  .option('--non-interactive', 'Do not ask for confirmation before applying changes')
   .option('--ignore-indexes', 'Skips verification and updating of indices')
   .action(async (parseUrl, commands, cliOptions: CliOptions) => {
     try {
@@ -166,20 +183,29 @@ program
       
       gamePlan.forEach((command) => console.log(prettyPrintCommand(command)));
       
-      rl.question('Do you want to execute these commands? [y/N]', (answer) => {
-        if (answer.toLowerCase() !== 'y') {
-          console.error('Exiting without making changes');
-          process.exit();
-        }
-     
+      if (cliOptions.nonInteractive) {
         execute(
           gamePlan,
           parseUrl,
           options.applicationId,
           options.key
         );
-        rl.close()
-      })
+      } else {
+        rl.question('Do you want to execute these commands? [y/N]', (answer) => {
+          if (answer.toLowerCase() !== 'y') {
+            console.error('Exiting without making changes');
+            process.exit();
+          }
+          
+          execute(
+            gamePlan,
+            parseUrl,
+            options.applicationId,
+            options.key
+          );
+          rl.close()
+        });
+      }
     } catch (e) {
       handleError(e);
     };
@@ -201,6 +227,8 @@ const validateOptions = (options: CliOptions): Options => {
   const key: ?string = options.key || process.env.PARSE_MASTER_KEY;
   const hookUrl: ?string = options.hookUrl || process.env.PARSE_HOOK_URL || null;
   const ignoreIndexes = options.ignoreIndexes;
+  const disallowColumnRedefine = options.disallowColumnRedefine;
+  const disallowIndexRedefine = options.disallowIndexRedefine;
 
   if (applicationId === null || applicationId === undefined) {
     throw new MissingParameterError('Application id', '-i', 'PARSE_APPLICATION_ID');
@@ -212,7 +240,9 @@ const validateOptions = (options: CliOptions): Options => {
     applicationId,
     key,
     hookUrl,
-    ignoreIndexes
+    ignoreIndexes,
+    disallowColumnRedefine,
+    disallowIndexRedefine
   };
 };
 
