@@ -153,7 +153,8 @@ program
             gamePlan,
             parseUrl,
             options.applicationId,
-            options.key
+            options.key,
+            consoleLogger
           );
           rl.close()
         });
@@ -203,7 +204,8 @@ program
             gamePlan,
             parseUrl,
             options.applicationId,
-            options.key
+            options.key,
+            consoleLogger
           );
           rl.close()
         });
