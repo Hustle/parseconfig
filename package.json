@@ -1,5 +1,6 @@
 {
   "name": "parseconfig",
+  "version": "0.9",
   "main": "dist/parseconfig.js",
   "scripts": {
     "clean": "rm -rf dist/; rm -rf .test-compiled/",
