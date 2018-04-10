@@ -33,5 +33,13 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
+# tests
+test
+integration-test
+
 # test output
 .test-compiled
+.integration-test-compiled
+
+# original src
+src/
