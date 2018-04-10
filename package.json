@@ -1,13 +1,13 @@
 {
   "name": "@eclaire/parseconfig",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "main": "./dist/actions.js",
   "bin": "./dist/parseconfig.js",
   "scripts": {
     "clean": "rm -rf dist/; rm -rf .test-compiled/",
     "build": "babel src/ -d dist/",
     "flow-typed-install": "flow-typed install -s -o --ignoreDeps dev",
-    "prepublish": "yarn run build",
+    "prepublish": "yarn run build; ./shebangify",
     "postinstall": "./.hooks/setup-hooks",
     "test": "yarn run clean; yarn run build; babel test/ -d .test-compiled/; mocha .test-compiled/",
     "integration-test": "yarn run clean; yarn run build; babel integration-test/ -d .integration-test-compiled/; mocha .integration-test-compiled/"
