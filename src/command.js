@@ -253,7 +253,7 @@ const prettyPrintCommand = (command: Command): string => {
     case UpdateColumn.type:
       return `Update Column "${command.name}" on "${command.collection}"`;
     case AddIndex.type:
-      return `Add Index "${command.definition.indexName}" to "${command.definition.className}"`;
+      return `Add Index "${command.name}" to "${command.collection}"`;
     case DeleteIndex.type:
       return `Delete Index "${command.indexName}" from "${command.collection}"`;
     case UpdateIndex.type:
