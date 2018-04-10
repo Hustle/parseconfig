@@ -143,7 +143,7 @@ program
           consoleLogger
         );
       } else {
-        rl.question('Do you want to execute these commands? [y/N]', (answer) => {
+        rl.question('Do you want to execute these commands? [y/N] ', (answer) => {
           if (answer.toLowerCase() !== 'y') {
             console.error('Exiting without making changes');
             process.exit();
@@ -172,7 +172,7 @@ program
   .option('-u, --hook-url <s>', 'Base url for functions and triggers')
   .option('--non-interactive', 'Do not ask for confirmation before applying changes')
   .option('--ignore-indexes', 'Skips verification and updating of indices')
-  .action(async (parseUrl, commands, cliOptions: CliOptions) => {
+  .action(async (parseUrl, commandsFile, cliOptions: CliOptions) => {
     try {
 
       const rl = readline.createInterface({
@@ -181,7 +181,7 @@ program
       });
 
       const options = validateOptions(cliOptions);
-      const gamePlan = JSON.parse(commands);
+      const gamePlan = getCommands(commandsFile);
       
       gamePlan.forEach((command) => console.log(prettyPrintCommand(command)));
       
@@ -194,7 +194,7 @@ program
           consoleLogger
         );
       } else {
-        rl.question('Do you want to execute these commands? [y/N]', (answer) => {
+        rl.question('Do you want to execute these commands? [y/N] ', (answer) => {
           if (answer.toLowerCase() !== 'y') {
             console.error('Exiting without making changes');
             process.exit();
@@ -218,6 +218,18 @@ program
 const getNewSchema = (schemaFile: string): Schema => {
   try {
     const fileContents = fs.readFileSync(schemaFile, {encoding: 'UTF-8'});
+    return JSON.parse(fileContents);
+  } catch (err) {
+    console.error(err.message);
+    process.exit(1);
+    throw err; // Satisfy flow
+  }
+};
+
+const getCommands = (commandFile: string): Array<Command> => {
+  try {
+    const fileContents = fs.readFileSync(commandFile, {encoding: 'UTF-8'});
+    console.log(fileContents)
     return JSON.parse(fileContents);
   } catch (err) {
     console.error(err.message);
