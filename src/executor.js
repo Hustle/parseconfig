@@ -90,7 +90,7 @@ const executeRequests = (
       return httpClient(current);
     })
   ), Promise.resolve()).catch(e => (
-    console.error(e.message)
+    logger.error(e.message)
   ));
 };
 
