@@ -180,6 +180,30 @@ describe('planner', function() {
         [delCol]
       );
     });
+    it('should ignore private indices with the appropriate flag', function() {
+      const oldSchema = deepCopy(defaultSchema.collections);
+      const newSchema = deepCopy(defaultSchema.collections);
+
+      oldSchema[0].indexes['_private_index'] = { _created_at: 1 };
+      assert.deepEqual(
+        planCollections(newSchema, oldSchema, true),
+        []
+      );
+    });
+    it('should delete private indices without the appropriate flag', function() {
+      const oldSchema = deepCopy(defaultSchema.collections);
+      const newSchema = deepCopy(defaultSchema.collections);
+
+      const delCol = DeleteIndex(
+        newSchema[0].className,
+        '_private_index'
+      );
+      oldSchema[0].indexes['_private_index'] = { _created_at: 1 };
+      assert.deepEqual(
+        planCollections(newSchema, oldSchema, false),
+        [delCol]
+      );
+    });
     it('should update a changed index', function() {
       const oldSchema = deepCopy(defaultSchema.collections);
       const newSchema = deepCopy(defaultSchema.collections);

@@ -5,5 +5,5 @@ isup=1
 while [[ $isup -ne 0 ]] ; do
     isup=$(curl -f http://localhost:7345/1/schemas -H "X-Parse-Application-Id: the_application_id" -H "X-Parse-Master-Key: the_master_key" > /dev/null)
 done
-yarn run integration-test
+yarn run integration-test || exit 1
 docker-compose -f docker-compose-tests.yml down
