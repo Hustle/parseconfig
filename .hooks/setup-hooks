@@ -1,4 +1,8 @@
 #!/bin/sh
 
 set -euo pipefail
-ln -s $PWD/.hooks/pre-commit ./.git/hooks/pre-commit
+if [[ -d ./.git/ ]] ; then
+    if [[ ! -f ./.git/hooks/pre-commit ]] ; then
+        ln -s $PWD/.hooks/pre-commit ./.git/hooks/pre-commit
+    fi
+fi
