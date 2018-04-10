@@ -1,7 +1,7 @@
 version: '2'
 services:
   parse_server:
-    image: 234730834987.dkr.ecr.us-east-1.amazonaws.com/hustle/parse-server:2.7.1-3
+    image: 234730834987.dkr.ecr.us-east-1.amazonaws.com/hustle/parse-server:2.7.4-8
     environment:
       - PARSE_SERVER_DATABASE_URI=mongodb://mongo/parse
       - PARSE_SERVER_MASTER_KEY=the_master_key
@@ -11,6 +11,7 @@ services:
       - PARSE_FILES_S3_ACCESS_KEY=s3bucket1
       - PARSE_FILES_S3_SECRET_KEY=s3bucket2
       - PARSE_FILES_S3_BUCKET=s3bucket3
+      - HUSTLE_ENV=development
     ports:
       - 7345:1337
     links:
