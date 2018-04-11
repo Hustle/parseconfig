@@ -135,6 +135,11 @@ program
       const options = validateOptions(cliOptions);
       const newSchema = getNewSchema(schema);
       const gamePlan = await getPlan(newSchema, parseUrl, options, consoleLogger);
+
+      if (gamePlan.length === 0) {
+        console.error('No changes to make');
+        process.exit();
+      }
       
       gamePlan.forEach((command) => console.log(prettyPrintCommand(command)));
 
@@ -186,6 +191,11 @@ program
 
       const options = validateOptions(cliOptions);
       const gamePlan = getCommands(commandsFile);
+
+      if (gamePlan.length === 0) {
+        console.error('No changes to make');
+        process.exit();
+      }
       
       gamePlan.forEach((command) => console.log(prettyPrintCommand(command)));
       
