@@ -1,6 +1,6 @@
 {
   "name": "@eclaire/parseconfig",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "main": "./dist/actions.js",
   "bin": "./dist/parseconfig.js",
   "scripts": {
