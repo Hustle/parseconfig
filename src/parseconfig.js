@@ -141,7 +141,7 @@ program
         process.exit();
       }
       
-      gamePlan.forEach((command) => console.log(prettyPrintCommand(command)));
+      gamePlan.forEach((command) => console.error(prettyPrintCommand(command)));
 
       if (cliOptions.nonInteractive) {
         execute(
@@ -198,7 +198,7 @@ program
         process.exit();
       }
       
-      gamePlan.forEach((command) => console.log(prettyPrintCommand(command)));
+      gamePlan.forEach((command) => console.error(prettyPrintCommand(command)));
       
       if (cliOptions.nonInteractive) {
         execute(

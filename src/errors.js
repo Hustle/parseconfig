@@ -44,8 +44,11 @@ class MissingParameterError extends CliError {
 
 class OutOfSyncError extends CliError {
   
-  constructor(...params: any) {
-    const msg = 'Parse is out of sync with schema, Run plan to see differences';
+  diff: Array<Command>
+
+  constructor(diff: Array<Command>, ...params: any) {
+    const prettyDiff =  diff.map((command) => prettyPrintCommand(command)).join('\n');
+    const msg = `Parse is out of sync with schema. These changes are required:\n${prettyDiff}`;
     super(1, true, msg, ...params);
 
     if (Error.captureStackTrace) {

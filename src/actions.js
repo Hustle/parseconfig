@@ -81,12 +81,12 @@ const check = async (
   options: Options,
   logger: Logger
 ) => {
-  const commands = getPlan(newSchema, parseUrl, options, logger)
+  const commands = await getPlan(newSchema, parseUrl, options, logger)
   
   if (commands.length === 0) {
     return;
   }
-  throw new OutOfSyncError();
+  throw new OutOfSyncError(commands);
 };
 
 const getLiveSchema = async (
