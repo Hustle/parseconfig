@@ -44,9 +44,9 @@ describe('planner', function() {
           find: {
             ['role:user']: true
           },
-          get: {},
           create: {},
           update: {},
+          get: {},
           delete: {},
           addField: {}
         }

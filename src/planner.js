@@ -1,5 +1,7 @@
 // @flow
 
+import deepEquals from 'lodash.isequal';
+
 import type {
   Schema,
   CollectionDefinition,
@@ -30,13 +32,6 @@ import {
 import type {
   Command
 } from './command';
-
-const deepEquals = (a: any, b: any): boolean => {
-  if (a === undefined || b === undefined) {
-    return a === b;
-  }
-  return JSON.stringify(a) === JSON.stringify(b);
-}
 
 const plan = (
   newSchema: Schema,

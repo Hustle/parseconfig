@@ -151,6 +151,7 @@ program
           options.key,
           consoleLogger
         );
+        rl.close()
       } else {
         rl.question('Do you want to execute these commands? [y/N] ', (answer) => {
           if (answer.toLowerCase() !== 'y') {
@@ -207,6 +208,7 @@ program
           options.key,
           consoleLogger
         );
+        rl.close()
       } else {
         rl.question('Do you want to execute these commands? [y/N] ', (answer) => {
           if (answer.toLowerCase() !== 'y') {
