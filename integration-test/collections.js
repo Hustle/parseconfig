@@ -136,4 +136,80 @@ describe('collections', () => {
     const s3 = await getSchema();
     assert.deepEqual(s3, newSchema);
   });
+  describe('with circular pointers', () => {
+    const circularSchema = {
+      collections: [
+        {
+          className: 'Foo',
+          fields: {
+            objectId: {
+              type: 'String'
+            },
+            createdAt: {
+              type: 'Date'
+            },
+            updatedAt: {
+              type: 'Date'
+            },
+            ACL: {
+              type: 'ACL'
+            },
+            barPointer: {
+              type: 'Pointer',
+              targetClass: 'Bar'
+            }
+          },
+          classLevelPermissions: {
+            find: {},
+            get: {},
+            create: {},
+            update: {},
+            delete: {},
+            addField: {}
+          }
+        },
+        {
+          className: 'Bar',
+          fields: {
+            objectId: {
+              type: 'String'
+            },
+            createdAt: {
+              type: 'Date'
+            },
+            updatedAt: {
+              type: 'Date'
+            },
+            ACL: {
+              type: 'ACL'
+            },
+            fooPointer: {
+              type: 'Pointer',
+              targetClass: 'Foo'
+            }
+          },
+          classLevelPermissions: {
+            find: {},
+            get: {},
+            create: {},
+            update: {},
+            delete: {},
+            addField: {}
+          }
+        }
+      ],
+      functions: [],
+      triggers: []
+    };
+    it('should be added correctly', async () => {
+
+      await reset();
+      const s1 = await getSchema();
+      assert.deepEqual(s1, emptySchema);
+
+      await apply(circularSchema);
+      const s2 = await getSchema();
+      assert.deepEqual(s2, circularSchema);
+    });
+  });
 });

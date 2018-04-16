@@ -20,7 +20,7 @@ const apply =  async (newSchema, opts = {}) => {
   const planOpts = Object.assign({}, options, opts);
   const gamePlan = await getPlan(newSchema, parseUrl, planOpts, logger);
   if (opts.logPlan) {
-    console.log(gamePlan);
+    console.log(JSON.stringify(gamePlan));
   }
   return execute(
     gamePlan,

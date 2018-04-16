@@ -27,6 +27,10 @@ const defaultSchema = {
         },
         'AAB': {
           type: 'String'
+        },
+        'AAC': {
+          type: 'Pointer',
+          targetClass: 'Bar'
         }
       },
       indexes: {
@@ -110,8 +114,7 @@ describe('indices', () => {
     const newSchema = deepCopy(defaultSchema);
 
     newSchema.collections[0].indexes.Index_Two = {
-      AAB: 1,
-      AAA: 1
+      AAC: 1,
     };
 
     await reset();
