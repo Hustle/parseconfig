@@ -10,6 +10,7 @@ import {
   DeleteIndex,
   UpdateColumn,
   DeleteColumn,
+  AddCollection,
   prettyPrintCommand,
 } from './command';
 
@@ -55,6 +56,11 @@ const getPlan = async (
         && c.type !== UpdateIndex.type
         && c.type !== DeleteIndex.type
     ));
+    commands.forEach(c => {
+      if (c.type === AddCollection.type) {
+        c.definition.indexes = {};
+      }
+    });
   }
   if (options.disallowColumnRedefine) {
     commands.forEach(c => {

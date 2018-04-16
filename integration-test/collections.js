@@ -136,6 +136,22 @@ describe('collections', () => {
     const s3 = await getSchema();
     assert.deepEqual(s3, newSchema);
   });
+  it('should ignore indices when the correct flag is passed', async () => {
+    const schema = deepCopy(defaultSchema);
+    const expectedSchema = deepCopy(defaultSchema);    
+
+    expectedSchema.collections.forEach(c => {
+      delete c.indexes;
+    });
+
+    await reset();
+    const s1 = await getSchema();
+    assert.deepEqual(s1, emptySchema);
+
+    await apply(schema, { ignoreIndexes: true });
+    const s2 = await getSchema();
+    assert.deepEqual(s2, expectedSchema);
+  });
   describe('with circular pointers', () => {
     const circularSchema = {
       collections: [
