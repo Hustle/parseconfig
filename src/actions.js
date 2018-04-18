@@ -115,26 +115,26 @@ const getLiveSchema = async (
     url: '/schemas'
   }).then(response => response.data.results)
     .catch((e) => {
-      logger.error('Unable to retrieve collections from Parse.', e);
-      return Promise.reject(); // satisfy flow
+      logger.error('Unable to retrieve collections from Parse.');
+      return Promise.reject(e);
     });
   
   const functions = await httpClient({
     method: 'get',
     url: '/hooks/functions'
   }).then(response => response.data)
-    .catch(() => {
+    .catch((e) => {
       logger.error('Unable to retrieve functions from Parse.');
-      return Promise.reject(); // satisfy flow
+      return Promise.reject(e);
     });
   
   const triggers = await httpClient({
     method: 'get',
     url: '/hooks/triggers'
   }).then(response => response.data)
-    .catch(() => {
+    .catch((e) => {
       logger.error('Unable to retrieve triggers from Parse.');
-      return Promise.reject(); // satisfy flow
+      return Promise.reject(e);
     });
 
   return {
