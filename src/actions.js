@@ -116,7 +116,6 @@ const getLiveSchema = async (
   }).then(response => response.data.results)
     .catch((e) => {
       logger.error('Unable to retrieve collections from Parse.', e);
-      process.exit();
       return Promise.reject(); // satisfy flow
     });
   
@@ -126,7 +125,6 @@ const getLiveSchema = async (
   }).then(response => response.data)
     .catch(() => {
       logger.error('Unable to retrieve functions from Parse.');
-      process.exit();
       return Promise.reject(); // satisfy flow
     });
   
@@ -136,7 +134,6 @@ const getLiveSchema = async (
   }).then(response => response.data)
     .catch(() => {
       logger.error('Unable to retrieve triggers from Parse.');
-      process.exit();
       return Promise.reject(); // satisfy flow
     });
 
