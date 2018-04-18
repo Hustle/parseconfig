@@ -8,8 +8,10 @@ import {
   duplicateIndex,
   duplicateColumn,
   duplicateTrigger,
+  invalidTrigger,
   invalidTriggerName,
   invalidTriggerClass,
+  invalidFunction,
   duplicateFunction,
   invalidPermission,
 } from '../dist/validation-error';
@@ -127,6 +129,16 @@ describe('verifier', function() {
         [duplicateTrigger(dupTrigger)]
       );
     });
+    it('should error on invalid trigger', function() {
+      const schema = deepCopy(defaultSchema);
+      const invalidTrig = schema.triggers[0]
+      delete invalidTrig.url;
+      
+      assert.deepEqual(
+        verifySchema(schema),
+        [invalidTrigger(invalidTrig)]
+      );
+    });
     it('should error on invalid trigger names', function() {
       const schema = deepCopy(defaultSchema);
       schema.triggers[0].triggerName = 'INVALID';
@@ -153,6 +165,16 @@ describe('verifier', function() {
       assert.deepEqual(
         verifySchema(schema),
         [duplicateFunction(dupFunc)]
+      );
+    });
+    it('should error on invalid functions', function() {
+      const schema = deepCopy(defaultSchema);
+      const invalidFunc = schema.functions[0]
+      delete invalidFunc.url;
+      
+      assert.deepEqual(
+        verifySchema(schema),
+        [invalidFunction(invalidFunc)]
       );
     });
   });

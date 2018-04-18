@@ -30,11 +30,20 @@ const duplicateTrigger = (trigger: TriggerDefinition): ValidationError => (
   `Duplicate definitions for trigger ${trigger.className}.${trigger.triggerName}`
 );
 
+const invalidTrigger = (trigger: TriggerDefinition): ValidationError => (
+  `Invalid trigger "${trigger.triggerName}" for class "${trigger.className}"`
+);
+
 const invalidTriggerName = (trigger: TriggerDefinition): ValidationError => (
   `Invalid trigger name "${trigger.triggerName}" for class "${trigger.className}"`
 );
+
 const invalidTriggerClass = (trigger: TriggerDefinition): ValidationError => (
   `Invalid trigger class "${trigger.className}" for trigger of type "${trigger.triggerName}"`
+);
+
+const invalidFunction = (func: FunctionDefinition): ValidationError => (
+  `Invalid function "${func.functionName}"`
 );
 
 const duplicateFunction = (func: FunctionDefinition): ValidationError => (
@@ -53,8 +62,10 @@ export {
   duplicateIndex,
   duplicateColumn,
   duplicateTrigger,
+  invalidTrigger,
   invalidTriggerName,
   invalidTriggerClass,
+  invalidFunction,
   duplicateFunction,
   invalidPermission,
   prettyPrintValidationError

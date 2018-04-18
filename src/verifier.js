@@ -21,9 +21,11 @@ import {
   duplicateIndex,
   duplicateColumn,
   duplicateTrigger,
+  invalidTrigger,
   invalidTriggerName,
   invalidTriggerClass,
   invalidPermission,
+  invalidFunction,
   duplicateFunction,
 } from './validation-error';
 
@@ -144,6 +146,10 @@ const verifyTrigger = (
   if (!collections.includes(trigger.className)) {
     errors.push(invalidTriggerClass(trigger));
   }
+  // Should be moved to a deserialization step
+  if (!trigger.triggerName || !trigger.className || !trigger.url) {
+    errors.push(invalidTrigger(trigger));
+  }
   return errors;
 };
 
@@ -151,6 +157,11 @@ const verifyFunctions = (functions: Array<FunctionDefinition>): Array<Validation
   const errors = [];
   const names = new Set();
   functions.forEach(func => {
+    // Should be moved to a deserialization step
+    if (!func.functionName || !func.url) {
+      errors.push(invalidFunction(func));
+    }
+
     if (names.has(func.functionName)) {
       errors.push(duplicateFunction(func));
     } else {
