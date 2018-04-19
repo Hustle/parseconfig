@@ -1,5 +1,11 @@
 `parseconfig` is a command-line tool for schema migrations on the [Parse Platform](http://parseplatform.org/).
 
+## Installation
+
+```console
+yarn add --dev @hustle/parseconfig
+```
+
 ## Usage
 
 The tool takes a schema file containing all the collections, functions, and triggers you want to configure Parse with (see below for an example). To apply the schema to a Parse database you need the master key and application id for that server. Once you have those run
