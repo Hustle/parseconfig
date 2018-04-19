@@ -261,7 +261,7 @@ const prettyPrintCommand = (command: Command): string => {
     case AddFunction.type:
       return `Add Function "${command.definition.functionName}"`;
     case DeleteFunction.type:
-      return `Add Function "${command.functionName}"`;
+      return `Delete Function "${command.functionName}"`;
     case UpdateFunction.type:
       return `Update Function "${command.definition.functionName}"`;
     case AddTrigger.type:
