@@ -37,12 +37,10 @@ const plan = (
   newSchema: Schema,
   oldSchema: Schema,
   hookUrl: ?string,
-  ignorePrivateIndexes: boolean = false,
 ): Array<Command> => {
   return planCollections(
     newSchema.collections,
     oldSchema.collections,
-    ignorePrivateIndexes
   ).concat(
     planFunctions(newSchema.functions, oldSchema.functions, hookUrl),
     planTriggers(newSchema.triggers, oldSchema.triggers, hookUrl)
@@ -52,7 +50,6 @@ const plan = (
 const planCollections = (
   newSchema: Array<CollectionDefinition>,
   oldSchema: Array<CollectionDefinition>,
-  ignorePrivateIndexes: boolean,
 ): Array<Command> => {
   const oldColMap = new Map(oldSchema.map(c => [c.className, c]));
   const newColMap = new Map(newSchema.map(c => [c.className, c]));
@@ -165,9 +162,6 @@ const planCollections = (
       }
       const indexes: { [string]: IndexDefinition } = collection.indexes || {};
       Object.keys(indexes).forEach((name) => {
-        if (ignorePrivateIndexes && name.startsWith('_')) {
-          return;
-        }
         const newIndex = (newC.indexes || {})[name];
         if (newIndex === undefined) {
           di.push(DeleteIndex(collection.className, name));

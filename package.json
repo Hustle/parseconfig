@@ -1,5 +1,5 @@
 {
-  "name": "@eclaire/parseconfig",
+  "name": "@hustle/parseconfig",
   "version": "0.0.17",
   "main": "./dist/actions.js",
   "bin": "./dist/parseconfig.js",

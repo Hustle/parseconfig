@@ -29,7 +29,6 @@ export type Options = {
   key: string,
   hookUrl: ?string,
   ignoreIndexes: boolean,
-  ignorePrivateIndexes: boolean,
   disallowColumnRedefine: boolean,
   disallowIndexRedefine: boolean
 }
@@ -49,7 +48,7 @@ const getPlan = async (
     throw new InvalidSchemaError(validationErrors);
   }
   const oldSchema = await getLiveSchema(parseUrl, applicationId, key, logger);
-  let commands = plan(newSchema, oldSchema, hookUrl, options.ignorePrivateIndexes);
+  let commands = plan(newSchema, oldSchema, hookUrl);
   if (options.ignoreIndexes) {
     commands = commands.filter(c => (
       c.type !== AddIndex.type

@@ -43,7 +43,6 @@ export type CliOptions = {
   key: ?string,
   hookUrl: ?string,
   ignoreIndexes: boolean,
-  ignorePrivateIndexes: boolean,
   disallowColumnRedefine: boolean,
   disallowIndexRedefine: boolean
 }
@@ -80,7 +79,6 @@ program
   .option('-k, --key <s>', 'Parse access key')
   .option('-u, --hook-url <s>', 'Base url for functions and triggers')
   .option('--ignore-indexes', 'Skips verification and updating of indices')
-  .option('--ignore-private-indexes', 'Ignores indices on the live Parse server that begin with _')
   .option('--disallow-column-redefine', 'Prevents columns from being updated or deleted')
   .option('--disallow-index-redefine', 'Prevents indices from being updated or deleted')
   .action(async (parseUrl, schema, cliOptions: CliOptions) => {
@@ -101,7 +99,6 @@ program
   .option('-k, --key <s>', 'Parse access key')
   .option('-u, --hook-url <s>', 'Base url for functions and triggers')
   .option('--ignore-indexes', 'Skips verification and updating of indices')
-  .option('--ignore-private-indexes', 'Ignores indices on the live Parse server that begin with _')
   .action(async (parseUrl, schema, cliOptions: CliOptions) => {
     try {
       const options = validateOptions(cliOptions);
@@ -121,7 +118,6 @@ program
   .option('-u, --hook-url <s>', 'Base url for functions and triggers')
   .option('--non-interactive', 'Do not ask for confirmation before applying changes')
   .option('--ignore-indexes', 'Skips verification and updating of indices')
-  .option('--ignore-private-indexes', 'Ignores indices on the live Parse server that begin with _')
   .option('--disallow-column-redefine', 'Prevents columns from being updated or deleted')
   .option('--disallow-index-redefine', 'Prevents indices from being updated or deleted')
   .action(async (parseUrl, schema, cliOptions: CliOptions) => {
@@ -259,7 +255,6 @@ const validateOptions = (options: CliOptions): Options => {
   const key: ?string = options.key || process.env.PARSE_MASTER_KEY;
   const hookUrl: ?string = options.hookUrl || process.env.PARSE_HOOK_URL || null;
   const ignoreIndexes = options.ignoreIndexes;
-  const ignorePrivateIndexes = options.ignorePrivateIndexes;
   const disallowColumnRedefine = options.disallowColumnRedefine;
   const disallowIndexRedefine = options.disallowIndexRedefine;
 
@@ -274,7 +269,6 @@ const validateOptions = (options: CliOptions): Options => {
     key,
     hookUrl,
     ignoreIndexes,
-    ignorePrivateIndexes,
     disallowColumnRedefine,
     disallowIndexRedefine
   };
