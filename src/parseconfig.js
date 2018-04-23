@@ -44,7 +44,8 @@ export type CliOptions = {
   hookUrl: ?string,
   ignoreIndexes: boolean,
   disallowColumnRedefine: boolean,
-  disallowIndexRedefine: boolean
+  disallowIndexRedefine: boolean,
+  verbose: boolean
 }
 
 program.usage('parseconfig [commands]');
@@ -145,7 +146,8 @@ program
           parseUrl,
           options.applicationId,
           options.key,
-          consoleLogger
+          consoleLogger,
+          !!cliOptions.verbose
         );
         rl.close()
       } else {
@@ -160,7 +162,8 @@ program
             parseUrl,
             options.applicationId,
             options.key,
-            consoleLogger
+            consoleLogger,
+            !!cliOptions.verbose
           );
           rl.close()
         });
@@ -202,7 +205,8 @@ program
           parseUrl,
           options.applicationId,
           options.key,
-          consoleLogger
+          consoleLogger,
+          !!cliOptions.verbose
         );
         rl.close()
       } else {
@@ -217,7 +221,8 @@ program
             parseUrl,
             options.applicationId,
             options.key,
-            consoleLogger
+            consoleLogger,
+            !!cliOptions.verbose
           );
           rl.close()
         });

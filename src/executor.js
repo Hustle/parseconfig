@@ -56,14 +56,16 @@ const execute = (
   parseUrl: string,
   applicationId: string,
   accessKey: string,
-  logger: Logger
+  logger: Logger,
+  verbose: boolean = false
 ): Promise<*> => {
   return executeRequests(
     flatten(commands.map(commandToAxiosRequests)),
     parseUrl,
     applicationId,
     accessKey,
-    logger
+    logger,
+    verbose
   );
 };
 
@@ -72,7 +74,8 @@ const executeRequests = (
   parseUrl: string,
   applicationId: string,
   accessKey: string,
-  logger: Logger
+  logger: Logger,
+  verbose: boolean
 ): Promise<*> => {
 
   const httpClient = axios.create({
@@ -89,9 +92,13 @@ const executeRequests = (
       logger.info('Executing', JSON.stringify(current));
       return httpClient(current);
     })
-  ), Promise.resolve()).catch(e => (
-    logger.error(e.message)
-  ));
+  ), Promise.resolve()).catch(e => {
+    if (verbose) {
+      logger.error(e)
+    } else {
+      logger.error(e.message)
+    }
+  });
 };
 
 /**
