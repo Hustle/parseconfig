@@ -121,6 +121,7 @@ program
   .option('--ignore-indexes', 'Skips verification and updating of indices')
   .option('--disallow-column-redefine', 'Prevents columns from being updated or deleted')
   .option('--disallow-index-redefine', 'Prevents indices from being updated or deleted')
+  .option('--verbose', 'Output extra logging')
   .action(async (parseUrl, schema, cliOptions: CliOptions) => {
     try {
 
@@ -181,6 +182,7 @@ program
   .option('-u, --hook-url <s>', 'Base url for functions and triggers')
   .option('--non-interactive', 'Do not ask for confirmation before applying changes')
   .option('--ignore-indexes', 'Skips verification and updating of indices')
+  .option('--verbose', 'Output extra logging')
   .action(async (parseUrl, commandsFile, cliOptions: CliOptions) => {
     try {
 
