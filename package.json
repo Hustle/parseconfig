@@ -1,6 +1,6 @@
 {
   "name": "@hustle/parseconfig",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "main": "./dist/actions.js",
   "bin": "./dist/parseconfig.js",
   "scripts": {
