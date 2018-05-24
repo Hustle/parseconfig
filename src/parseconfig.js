@@ -234,6 +234,26 @@ program
     };
   });
 
+
+program
+  .command('display <commands>')
+  .description('Display the given gameplan')
+  .option('--verbose', 'Output extra logging')
+  .action(async (commandsFile, cliOptions: CliOptions) => {
+    try {
+      const gamePlan = getCommands(commandsFile);
+
+      if (gamePlan.length === 0) {
+        console.error('No changes to make');
+        process.exit();
+      }
+
+      gamePlan.forEach((command) => console.error(prettyPrintCommand(command)));
+    } catch (e) {
+      handleError(e);
+    };
+  });
+
 const getNewSchema = (schemaFile: string): Schema => {
   try {
     const fileContents = fs.readFileSync(schemaFile, {encoding: 'UTF-8'});
