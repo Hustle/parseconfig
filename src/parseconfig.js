@@ -149,8 +149,7 @@ program
           options.key,
           consoleLogger,
           !!cliOptions.verbose
-        );
-        rl.close()
+        ).then(() => rl.close(), handleError);
       } else {
         rl.question('Do you want to execute these commands? [y/N] ', (answer) => {
           if (answer.toLowerCase() !== 'y') {
@@ -165,8 +164,7 @@ program
             options.key,
             consoleLogger,
             !!cliOptions.verbose
-          );
-          rl.close()
+          ).then(() => rl.close(), handleError);
         });
       }
     } catch (e) {
@@ -209,8 +207,7 @@ program
           options.key,
           consoleLogger,
           !!cliOptions.verbose
-        );
-        rl.close()
+        ).then(() => rl.close(), handleError);
       } else {
         rl.question('Do you want to execute these commands? [y/N] ', (answer) => {
           if (answer.toLowerCase() !== 'y') {
@@ -225,8 +222,7 @@ program
             options.key,
             consoleLogger,
             !!cliOptions.verbose
-          );
-          rl.close()
+          ).then(() => rl.close(), handleError);
         });
       }
     } catch (e) {

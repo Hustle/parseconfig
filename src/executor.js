@@ -98,6 +98,7 @@ const executeRequests = (
     } else {
       logger.error(e.message)
     }
+    throw e;
   });
 };
 
