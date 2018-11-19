@@ -87,7 +87,7 @@ const planCollections = (
       const newPerms = collection.classLevelPermissions;
       const oldPerms = old.classLevelPermissions;
       if (!deepEquals(newPerms, oldPerms)) {
-        nc.push(UpdateCollectionPermissions(collection.className, newPerms));
+        nc.push(UpdateCollectionPermissions(collection.className, newPerms, oldPerms));
       }
     });
     return nc;
