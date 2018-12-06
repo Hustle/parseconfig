@@ -202,7 +202,8 @@ describe('planner', function() {
       newSchema[0].classLevelPermissions.create['role:user'] = true
       const newPerms = UpdateCollectionPermissions(
         newSchema[0].className,
-        deepCopy(newSchema[0].classLevelPermissions)
+        deepCopy(newSchema[0].classLevelPermissions),
+        deepCopy(oldSchema[0].classLevelPermissions)
       );
       assert.deepEqual(
         planCollections(newSchema, oldSchema),

@@ -86,7 +86,8 @@ export type UpdateTriggerCommand = {
 export type UpdateCollectionPermissionsCommand = {
   type: 'UpdateCollectionPermissions',
   collection: string,
-  definition: CollectionPermissions
+  definition: CollectionPermissions,
+  oldDefinition: CollectionPermissions
 }
 export type Command
   = AddCollectionCommand
@@ -230,12 +231,14 @@ UpdateTrigger.type = 'UpdateTrigger';
 
 const UpdateCollectionPermissions = (
   collection: string,
-  definition: CollectionPermissions
+  definition: CollectionPermissions,
+  oldDefinition: CollectionPermissions
 ): UpdateCollectionPermissionsCommand => (
   {
     type: UpdateCollectionPermissions.type,
     collection,
-    definition
+    definition,
+    oldDefinition
   }
 );
 UpdateCollectionPermissions.type = 'UpdateCollectionPermissions';
@@ -271,7 +274,7 @@ const prettyPrintCommand = (command: Command): string => {
     case UpdateTrigger.type:
       return `Update Trigger "${command.definition.triggerName}" on "${command.definition.className}"`;
     case UpdateCollectionPermissions.type:
-      return `Update Permissions on class "${command.collection}" to "${prettyPrintCollectionPermissions(command.definition)}"`;
+      return `Update Permissions on class "${command.collection}" to "${prettyPrintCollectionPermissions(command.definition)}" from "${prettyPrintCollectionPermissions(command.oldDefinition)}"`;
     default:
       return (command: empty); // exhaustiveness check
   }
