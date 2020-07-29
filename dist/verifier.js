@@ -38,7 +38,7 @@ const verifyCollectionIndexes = collection => {
     const indexDef = (collection.indexes || {})[indexName];
     Object.keys(indexDef).forEach(indexCol => {
       // columns added automatically by Parse
-      if (['_id', '_updated_at', '_created_at', '_session_token'].includes(indexCol)) {
+      if (['_id', '_updated_at', '_created_at', '_session_token', '_rperm'].includes(indexCol)) {
         return;
       }
 
