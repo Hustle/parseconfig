@@ -38,4 +38,5 @@ jspm_packages/
 .integration-test-compiled
 
 # distribution
-dist/
+# NOTE: we are using this feature branch until we're on parse-server#3 eveywhere
+#dist/
