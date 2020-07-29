@@ -1,6 +1,7 @@
 // @flow
 
 import deepEquals from 'lodash.isequal';
+import omit from 'lodash.omit';
 
 import type {
   Schema,
@@ -55,7 +56,7 @@ const planCollections = (
   const newColMap = new Map(newSchema.map(c => [c.className, c]));
 
   // TODO consolidate loops to improve performance
-  
+
   const newCollections = (() => {
     const oc = oldColMap;
     const nc = [];
@@ -84,8 +85,13 @@ const planCollections = (
       if (old === undefined) {
         return; // New Collection, handled above
       }
-      const newPerms = collection.classLevelPermissions;
-      const oldPerms = old.classLevelPermissions;
+
+      // NOTE: parse-server#3.x adds two default class level
+      // permissions: count and protectedFields. For now, ignore these
+      // fields until we're on v3 everywhere
+      const version3CLP = ['count', 'protectedFields'];
+      const newPerms = omit(collection.classLevelPermissions, version3CLP);
+      const oldPerms = omit(old.classLevelPermissions, version3CLP);
       if (!deepEquals(newPerms, oldPerms)) {
         nc.push(UpdateCollectionPermissions(collection.className, newPerms, oldPerms));
       }
@@ -217,7 +223,7 @@ const planFunctions = (
     });
     return delFuncs;
   })();
-  
+
   return deletedFunctions.concat(newFunctions);
 };
 
@@ -228,7 +234,7 @@ const planTriggers = (
   hookUrl: ?string
 ): Array<Command> => {
   const triggerKey = (t: TriggerDefinition): string => `${t.triggerName}-${t.className}`;
-  
+
   const oldTriggerMap = new Map(oldSchema.map(t => [triggerKey(t), t]));
   const newTriggerMap = new Map(newSchema.map(t => [triggerKey(t), t]));
 
@@ -258,7 +264,7 @@ const planTriggers = (
     });
     return delTriggers;
   })();
-  
+
   return deletedTriggers.concat(newTriggers);
 };
 
