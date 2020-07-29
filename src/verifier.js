@@ -61,7 +61,7 @@ const verifyCollectionIndexes = (collection: CollectionDefinition): Array<Valida
     const indexDef = (collection.indexes || {})[indexName];
     Object.keys(indexDef).forEach((indexCol) => {
       // columns added automatically by Parse
-      if (['_id', '_updated_at', '_created_at', '_session_token'].includes(indexCol)) {
+      if (['_id', '_updated_at', '_created_at', '_session_token', '_rperm'].includes(indexCol)) {
         return;
       }
 
@@ -118,7 +118,7 @@ const verifyTriggers = (
   triggers: Array<TriggerDefinition>,
   collections: Array<CollectionDefinition>
 ): Array<ValidationError> => {
-  
+
   const errors: Array<ValidationError> = [];
   const collectionNames = collections.map(c => c.className);
   const names = new Set();
@@ -138,7 +138,7 @@ const verifyTrigger = (
   trigger: TriggerDefinition,
   collections: Array<string>
 ): Array<ValidationError> => {
-  
+
   const errors = [];
   if (!triggerTypes.includes(trigger.triggerName)) {
     errors.push(invalidTriggerName(trigger));
