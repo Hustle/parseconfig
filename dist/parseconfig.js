@@ -224,10 +224,30 @@ _commander2.default.command('display <commands>').description('Display the given
   };
 })());
 
+const parseSchemaJSON = jsonSchema => {
+  const schema = JSON.parse(jsonSchema);
+  const newSchema = schema;
+  for (let i = 0; i < schema.collections.length; i++) {
+    // NOTE: parse-server stores indices in _SCHEMA in a naive way
+    // (name => key), we store indices with their options for
+    // posterity. Since we don't use parse-server to apply these
+    // indices, munge the shape to what we expect
+    const simpleIndices = {};
+    const indices = schema.collections[i].indexes;
+    // $FlowFixMe
+    const indexEntries = Object.entries(indices);
+    for (const [key, value] of indexEntries) {
+      simpleIndices[key] = value.key;
+    }
+    newSchema.collections[i].indexes = simpleIndices;
+  }
+  return newSchema;
+};
+
 const getNewSchema = schemaFile => {
   try {
     const fileContents = _fs2.default.readFileSync(schemaFile, { encoding: 'UTF-8' });
-    return JSON.parse(fileContents);
+    return parseSchemaJSON(fileContents);
   } catch (err) {
     console.error(err.message);
     process.exit(1);

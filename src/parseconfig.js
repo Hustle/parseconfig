@@ -129,7 +129,7 @@ program
         input: process.stdin,
         output: process.stdout
       });
-      
+
       const options = validateOptions(cliOptions);
       const newSchema = getNewSchema(schema);
       const gamePlan = await getPlan(newSchema, parseUrl, options, consoleLogger);
@@ -138,7 +138,7 @@ program
         console.error('No changes to make');
         process.exit();
       }
-      
+
       gamePlan.forEach((command) => console.error(prettyPrintCommand(command)));
 
       if (cliOptions.nonInteractive) {
@@ -156,7 +156,7 @@ program
             console.error('Exiting without making changes');
             process.exit();
           }
-          
+
           execute(
             gamePlan,
             parseUrl,
@@ -196,9 +196,9 @@ program
         console.error('No changes to make');
         process.exit();
       }
-      
+
       gamePlan.forEach((command) => console.error(prettyPrintCommand(command)));
-      
+
       if (cliOptions.nonInteractive) {
         execute(
           gamePlan,
@@ -214,7 +214,7 @@ program
             console.error('Exiting without making changes');
             process.exit();
           }
-          
+
           execute(
             gamePlan,
             parseUrl,
@@ -250,10 +250,30 @@ program
     };
   });
 
+const parseSchemaJSON = (jsonSchema: string): Schema => {
+  const schema = JSON.parse(jsonSchema);
+  const newSchema = schema;
+  for (let i = 0; i < schema.collections.length; i++) {
+    // NOTE: parse-server stores indices in _SCHEMA in a naive way
+    // (name => key), we store indices with their options for
+    // posterity. Since we don't use parse-server to apply these
+    // indices, munge the shape to what we expect
+    const simpleIndices = {};
+    const indices = schema.collections[i].indexes;
+    // $FlowFixMe
+    const indexEntries: Array<[string, { key: { [string]: number }, options: Object }]> = Object.entries(indices);
+    for (const [key, value] of indexEntries) {
+      simpleIndices[key] = value.key;
+    }
+    newSchema.collections[i].indexes = simpleIndices;
+  }
+  return newSchema;
+};
+
 const getNewSchema = (schemaFile: string): Schema => {
   try {
     const fileContents = fs.readFileSync(schemaFile, {encoding: 'UTF-8'});
-    return JSON.parse(fileContents);
+    return parseSchemaJSON(fileContents);
   } catch (err) {
     console.error(err.message);
     process.exit(1);
