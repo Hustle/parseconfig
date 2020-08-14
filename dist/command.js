@@ -127,7 +127,7 @@ const prettyPrintCommand = command => {
     case DeleteIndex.type:
       return `Delete Index "${command.indexName}" from "${command.collection}"`;
     case UpdateIndex.type:
-      return `Update Index "${command.definition.indexName}" on "${command.definition.className}"`;
+      return `Update Index "${command.name}" on "${command.collection}"`;
     case AddFunction.type:
       return `Add Function "${command.definition.functionName}"`;
     case DeleteFunction.type:
