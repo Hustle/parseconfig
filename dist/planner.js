@@ -9,10 +9,6 @@ var _lodash = require('lodash.isequal');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _lodash3 = require('lodash.omit');
-
-var _lodash4 = _interopRequireDefault(_lodash3);
-
 var _command = require('./command');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -55,13 +51,8 @@ const planCollections = (newSchema, oldSchema) => {
       if (old === undefined) {
         return; // New Collection, handled above
       }
-
-      // NOTE: parse-server#3.x adds two default class level
-      // permissions: count and protectedFields. For now, ignore these
-      // fields until we're on v3 everywhere
-      const version3CLP = ['count', 'protectedFields'];
-      const newPerms = (0, _lodash4.default)(collection.classLevelPermissions, version3CLP);
-      const oldPerms = (0, _lodash4.default)(old.classLevelPermissions, version3CLP);
+      const newPerms = collection.classLevelPermissions;
+      const oldPerms = old.classLevelPermissions;
       if (!(0, _lodash2.default)(newPerms, oldPerms)) {
         nc.push((0, _command.UpdateCollectionPermissions)(collection.className, newPerms, oldPerms));
       }
